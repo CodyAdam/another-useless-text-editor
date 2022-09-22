@@ -8,7 +8,7 @@ Présentation de l'implémentation
 # II. Déroulement
 
 Comme pour le TP1, nous cherchons à nous approprier le sujet en faisant un cahier des charges plus lisible et plus adapté à la situation.
-
+Cahier des
 ## Cahier des charges : 
 
 ### V1
@@ -27,8 +27,7 @@ Comme pour le TP1, nous cherchons à nous approprier le sujet en faisant un cahi
 (autrement dit on peut revenir au début)
 
 ## Plan
-
-Nous commençons ensuite par définir les différents graphoque UML nécessaires avant de commencer l'implémentation :
+çons ensuite par définir les différents graphoque UML nécessaires avant de commencer l'implémentation :
 - Diagramme de classe
 - Diagramme séquence
 - Diagramme d'état
@@ -39,15 +38,66 @@ Puis nous nous lançons dans le diagramme de classe :
 
 ```plantuml
 @startuml
-    class Listener{
+    class Editor{
+        +render()
+    }
+    class Buffer{
+        -mainText:List<String> 
+        +deletAt()
+        +addStingAt()
+        +getStringBetween()
+        +getInstance()
+    }
+    class Modifs{
         
     }
-    class Interface{
-        
+    Abstract Commands{
+        +name:String
+        +execute()
     }
-    class TextField{
-        
+    Class Copy{
+
     }
+    Class Paste{
+
+    }
+    Class Write{
+
+    }
+    Class EndSelec{
+
+    }
+    Class BeginSelec{
+
+    }
+    CLass Cursor{
+
+    }
+    Class Modifs{
+        +undo()
+    }
+    class Cursor{
+        -start:Position
+        -end:Position
+        +isSelection()
+        -getSelectedSize()
+        +getInstance()
+    }
+    class Clipbord{
+        -clip:string
+        +getInstance()
+        +getClip()
+        +setClip()
+    }
+    class Position{
+        -col:int
+        -line:int
+    }
+
+    Paste--|>Modifs
+    Write--|>Modifs
+    Copy--|>Commands
+    Modifs--|>Commands
 @enduml
 ``` 
 
