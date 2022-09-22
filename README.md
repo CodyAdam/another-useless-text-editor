@@ -38,66 +38,87 @@ Puis nous nous lançons dans le diagramme de classe :
 
 ```plantuml
 @startuml
+skinparam classAttributeIconSize 0
+    class Invoker {
+        +copy()
+        +paste()
+        +write(text: String)
+        +startSelect(pos: Position)
+        +endSelect(pos: Position)
+    }
+
     class Editor{
         +render()
     }
     class Buffer{
-        -mainText:List<String> 
-        +deletAt()
-        +addStingAt()
-        +getStringBetween()
+        -content:List<String> 
+        +deletBetween(start: Position, end: Position)
+        +addStingAt(pos: Position)
+        +getStringBetween(start: Position, end: Position)
         +getInstance()
     }
-    class Modifs{
-        
-    }
+    
     Abstract Commands{
         +name:String
         +execute()
     }
+    
     Class Copy{
-
+        
     }
+    
     Class Paste{
 
     }
+    
     Class Write{
 
     }
+    
     Class EndSelec{
 
     }
-    Class BeginSelec{
+    
+    Class StartSelec{
 
     }
+    
     CLass Cursor{
 
     }
-    Class Modifs{
-        +undo()
-    }
+    
     class Cursor{
-        -start:Position
-        -end:Position
         +isSelection()
         -getSelectedSize()
         +getInstance()
     }
+    
     class Clipbord{
         -clip:string
         +getInstance()
         +getClip()
         +setClip()
     }
+    
     class Position{
-        -col:int
-        -line:int
+        +col:int
+        +line:int
     }
-
-    Paste--|>Modifs
-    Write--|>Modifs
+    
+    Paste--|>Commands
+    Write--|>Commands
     Copy--|>Commands
-    Modifs--|>Commands
+    BeginSelec--|>Commands
+    EndSelec--|>Commands
+
+    Clipbord <.. Copy
+    Clipbord <.. Paste
+
+    Cursor -- Position : start
+    Cursor -- Position : end
+    EndSelec -- Position
+    BeginSelec -- Position
+    Invoker --> Commands
 @enduml
 ``` 
 
