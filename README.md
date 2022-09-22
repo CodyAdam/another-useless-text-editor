@@ -22,7 +22,15 @@ Puis nous nous lançons dans le diagramme de classe :
 
 ```plantuml
 @startuml
-    class TODO
+    class Listener{
+        
+    }
+    class Interface{
+        
+    }
+    class TextField{
+        
+    }
 @enduml
 ``` 
 
@@ -30,7 +38,9 @@ Puis nous nous lançons dans le diagramme de classe :
 
 ```plantuml
 @startuml
-    class TODO
+    class TODO{
+
+    }
 @enduml
 ``` 
 
@@ -38,6 +48,8 @@ Puis nous nous lançons dans le diagramme de classe :
 
 ```plantuml
 @startuml
-    class TODO
+    class TODO{
+
+    }
 @enduml
 ``` 
