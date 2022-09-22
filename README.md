@@ -19,3 +19,25 @@ Nous commençons ensuite par définir les différents graphoque UML nécessaires
 ## II.1 Diagramme de classe
 
 Puis nous nous lançons dans le diagramme de classe :
+
+```plantuml
+@startuml
+    class TODO
+@enduml
+``` 
+
+## II.2 Diagramme séquence
+
+```plantuml
+@startuml
+    class TODO
+@enduml
+``` 
+
+## II.3 Diagramme d'état
+
+```plantuml
+@startuml
+    class TODO
+@enduml
+``` 
