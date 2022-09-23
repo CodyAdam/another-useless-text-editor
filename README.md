@@ -76,24 +76,23 @@ skinparam classAttributeIconSize 0
     }
     
     Class EndSelec{
-
+        +pos: Position
     }
     
     Class StartSelec{
-
+        +pos: Position
     }
     
-    CLass Cursor{
-
-    }
     
     class Cursor{
+        start: Position
+        end: Position
         +isSelection()
-        -getSelectedSize()
         +getInstance()
+        +getSelectionSize()
     }
     
-    class Clipbord{
+    class Clipboard{
         -clip:string
         +getInstance()
         +getClip()
@@ -108,17 +107,13 @@ skinparam classAttributeIconSize 0
     Paste--|>Commands
     Write--|>Commands
     Copy--|>Commands
-    BeginSelec--|>Commands
+    StartSelec--|>Commands
     EndSelec--|>Commands
 
     Clipbord <.. Copy
     Clipbord <.. Paste
 
-    Cursor -- Position : start
-    Cursor -- Position : end
-    EndSelec -- Position
-    BeginSelec -- Position
-    Invoker --> Commands
+    Commands <-- Invoker
 @enduml
 ``` 
 
