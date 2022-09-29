@@ -42,7 +42,7 @@ skinparam classAttributeIconSize 0
     class Editor {
         -content: List<String>
         +Editor(): Editor
-        +deletBetween(start: Position, end: Position): void
+        +deleteBetween(start: Position, end: Position): void
         +deleteBefore(pos: Position): void
         +deleteAfter(pos: Position): void
         +addStringBetween(text: String, start: Position, end: Position): void
@@ -58,8 +58,8 @@ skinparam classAttributeIconSize 0
         +onPaste(): void
         +onWrite(text: String): void
         +onDelete(): void
-        +onStartSelectt(pos: Position): void
-        +onEndSelectt(pos: Position): void
+        +onMoveCursorStart(pos: Position): void
+        +onMoveCursorEnd(pos: Position): void
         +onMoveCursor(pos: Position): void
         +getCursor(): Cursor
         +getClipboard(): String
@@ -133,16 +133,16 @@ skinparam classAttributeIconSize 0
         +Suppr(cur: Cursor, edit: Editor): Suppr
     }
 
-    class StartSelect {
+    class MoveCursorStart {
         -pos: Position
         -cur: Cursor
-        +StartSelect(cur: Cursor, pos: Position): StartSelect
+        +MoveCursorStart(cur: Cursor, pos: Position): MoveCursorStart
     }
 
-    class EndSelect {
+    class MoveCursorEnd {
         -pos: Position
         -cur: Cursor
-        +EndSelect(cur: cursor, pos: Position): EndSelect
+        +MoveCursorEnd(cur: cursor, pos: Position): MoveCursorEnd
     }
 
 
