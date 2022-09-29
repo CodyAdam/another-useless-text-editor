@@ -61,6 +61,7 @@ skinparam classAttributeIconSize 0
         +onMoveStartCursor(pos: Position): void
         +onMoveEndCursor(pos: Position): void
         +onMoveCursor(pos: Position): void
+        +onSuppr(): void
         +getCursor(): Cursor
         +getClipboard(): String
         +getEditor(): Editor
@@ -78,7 +79,6 @@ skinparam classAttributeIconSize 0
         -end: Position
         +Cursor()
         +isSelection()
-        +getSelectionSize()
         +getStart()
         +getEnd()
         +setStart(pos: Position)
