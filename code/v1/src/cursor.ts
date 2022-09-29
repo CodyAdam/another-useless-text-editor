@@ -1,5 +1,14 @@
 import { Position } from './position';
 
+
+//  | is the cursor
+//  
+//  in the example below, the cursor is at the pos (line 0, col 1) 
+//  a|bc 
+//
+//  in the example below, the cursor is at the pos (line 0, col 0) 
+//  |abc 
+
 export class Cursor {
   private start: Position;
   private end: Position;
@@ -8,10 +17,8 @@ export class Cursor {
     this.end = end;
   }
   isSelection(): boolean {
-    // TODO
-    return false;
+    return this.start.getLine() !== this.end.getLine() || this.start.getCol() !== this.end.getCol();
   }
-
   getStart(): Position {
     return this.start;
   }
@@ -23,9 +30,5 @@ export class Cursor {
   }
   setEnd(end: Position): void {
     this.end = end;
-  }
-  getSelectionLength(): number {
-    // TODO
-    return 0;
   }
 }
