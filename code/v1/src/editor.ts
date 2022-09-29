@@ -15,10 +15,14 @@ export class Editor {
     // TODO
   }
   getBetween(start: Position, end: Position): string {
-    // TODO
+
+    const allLines = this.content.slice(start.getLine(), end.getLine() + 1);
+
     return "";
   }
   insertAt(pos: Position, text: string): void {
     // TODO
   }
+
+  private
 }
