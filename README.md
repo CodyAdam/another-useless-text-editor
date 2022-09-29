@@ -267,8 +267,27 @@ end
 
 ```plantuml
 @startuml
-    class TODO{
+    state Selection
+    state NoSelection
+    state HasClipboard
 
-    }
+    state isSelection <<choice>>
+    [*] --> NoSelection
+
+    NoSelection --> isSelection: MoveCursor
+    isSelection --> NoSelection: [distance start end cursor = 0]
+    isSelection --> Selection: [else]
+
+    state fork1 <<fork>>
+    Selection --> fork1
+    HasClipboard --> fork1
+    fork1 --> NoSelection : on paste
+
+    NoSelection --> NoSelection : on delete, on write
+    
+    Selection --> HasClipboard : on copy
+
+    Selection --> [*] : exit
+    NoSelection --> [*] : exit
 @enduml
 ``` 
