@@ -16,36 +16,63 @@ export class Application {
   private editor: Editor;
   private clipboard: string;
   private cursor: Cursor;
+  private listeners: (() => void)[] = [];
   constructor() {
+    console.log("\nLoading application...");
     this.editor = new Editor();
     this.clipboard = "";
     this.cursor = new Cursor();
     this.render();
+    console.log("Application successfully loaded!\n\n");
   }
 
   onCopy(): void {
-    new CopyCommand(this.cursor, this.editor, this).execute();
+    const command = new CopyCommand(this.cursor, this.editor, this)
+    command.execute();
+    console.log(command.getName());
+    
   }
   onPaste(): void {
-    new PasteCommand(this.cursor, this.editor, this).execute();
+    const command = new PasteCommand(this.cursor, this.editor, this)
+    command.execute();
+    console.log(command.getName());
+    this.render();
   }
   onWrite(text: string): void {
-    new WriteCommand(this.cursor, this.editor, text).execute();
+    const command = new WriteCommand(this.cursor, this.editor, text)
+    command.execute();
+    console.log(command.getName());
+    this.render();
   }
   onDelete(): void {
-    new DeleteCommand(this.cursor, this.editor).execute();
+    const command = new DeleteCommand(this.cursor, this.editor)
+    command.execute();
+    console.log(command.getName());
+    this.render();
   }
   onMoveCursor(position: Position): void {
-    new MoveCursorCommand(this.cursor, position).execute();
+    const command = new MoveCursorCommand(this.cursor, position)
+    command.execute();
+    console.log(command.getName());
+    this.render();
   }
   onMoveStartCursor(pos : Position): void {
-    new MoveStartCursorCommand(this.cursor, pos).execute();
+    const command = new MoveStartCursorCommand(this.cursor, pos)
+    command.execute();
+    console.log(command.getName());
+    this.render();
   }
   onMoveEndCursor(pos : Position): void {
-    new MoveEndCursorCommand(this.cursor, pos).execute();
+    const command = new MoveEndCursorCommand(this.cursor, pos)
+    command.execute();
+    console.log(command.getName());
+    this.render();
   }
   onSuppr(): void {
-    new SupprCommand(this.cursor, this.editor).execute();
+    const command = new SupprCommand(this.cursor, this.editor)
+    command.execute();
+    console.log(command.getName());
+    this.render();
   }
 
   // GETTERS
@@ -63,8 +90,12 @@ export class Application {
     this.clipboard = clip;
   }
 
+  addRenderListener(listener: () => void): void {
+    this.listeners.push(listener);
+  }
   render(): void {
-    // TODO
+    this.listeners.forEach(listener => listener());
+    console.log("Rendered!");
   }
 }
 
