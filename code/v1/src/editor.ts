@@ -3,7 +3,8 @@ import { Position } from './position';
 export class Editor {
   private content: string[];
   constructor() {
-    this.content = [];
+    this.content = [""];
+    console.log("Editor loaded!");
   }
   deleteBetween(start: Position, end: Position): void {
     const allLinesIndexes = range(start.getLine(), end.getLine() + 1);
@@ -38,7 +39,12 @@ export class Editor {
     }
   }
   insertAt(pos: Position, text: string): void {
-    // TODO
+    const line = this.content[pos.getLine()];
+    this.content[pos.getLine()] = getBefore(line, pos.getCol()) + text + getAfter(line, pos.getCol());
+  }
+
+  getContent(): string[] {
+    return this.content;
   }
 }
 
@@ -57,14 +63,14 @@ function getBetween(string: string, indexStart: number, indexEnd: number): strin
   return string.substring(indexStart, indexEnd);
 }
 
-function getAfter(string: string, index: number): string {
+function getAfter(text: string, index: number): string {
   if (index < 0) 
-    return string;
-  return string.slice(index);
+    return text;
+  return text.slice(index);
 }
 
-function getBefore(string: string, index: number): string {
+function getBefore(text: string, index: number): string {
   if (index < 0) 
     return "";
-  return string.slice(0, index);
+  return text.slice(0, index);
 }

@@ -25,6 +25,7 @@ export class DeleteCommand extends Command {
     this.edit = edit;
   }
   execute(): void {
+    console.log('DeleteCommand');
     if (this.cur.isSelection()){
       this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
       this.cur.setEnd(this.cur.getStart());
