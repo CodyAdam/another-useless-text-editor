@@ -269,31 +269,20 @@ end
 @startuml
     state Selection
     state NoSelection
-    state HasClipboard
 
     state isSelection <<choice>>
     [*] ---> NoSelection
 
-    NoSelection --> isSelection: MoveCursor
-    isSelection --> NoSelection: [distance start end cursor = 0]
+    Selection --> isSelection: move cursor
+    NoSelection --> isSelection: move cursor
+    NoSelection <-- isSelection : [distance start end cursor = 0]
     isSelection --> Selection: [else]
 
-    state fork1 <<fork>>
-    Selection --> fork1
-    HasClipboard --> fork1
-    fork1 --> NoSelection : on paste
 
-    NoSelection --> NoSelection : on copy, on delete, on write
+    NoSelection --> NoSelection : copy, delete, onwrite
     
-
-    state fork2 <<fork>>
-    NoSelection --> fork2
-    HasClipboard --> fork2
-    fork2 ---> NoSelection : on paste
-
-
-    Selection --> HasClipboard : on copy
-
+    Selection --> NoSelection : paste, delete, write
+    Selection --> Selection : copy
     Selection --> [*] : exit
     NoSelection --> [*] : exit
 @enduml
