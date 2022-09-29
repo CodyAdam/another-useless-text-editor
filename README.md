@@ -41,25 +41,25 @@ Puis nous nous lançons dans le diagramme de classe :
 skinparam classAttributeIconSize 0
     class Editor {
         -content: List<String>
-        +Editor(): Editor
+        +Editor()
         +deleteBetween(start: Position, end: Position): void
         +deleteBefore(pos: Position): void
         +deleteAfter(pos: Position): void
-        +addStringBetween(text: String, start: Position, end: Position): void
-        +getStringBetween(start: Position, end: Position): String
+        +insertAt(pos: Position, text: String): void
+        +getBetween(start: Position, end: Position): String
     }
 
     class Application{
         -editor: Editor
         -clipboard: String
         -cursor: Cursor
-        +Application(): Application
+        +Application()
         +onCopy(): void
         +onPaste(): void
         +onWrite(text: String): void
         +onDelete(): void
-        +onMoveCursorStart(pos: Position): void
-        +onMoveCursorEnd(pos: Position): void
+        +onMoveStartCursor(pos: Position): void
+        +onMoveEndCursor(pos: Position): void
         +onMoveCursor(pos: Position): void
         +getCursor(): Cursor
         +getClipboard(): String
@@ -68,7 +68,7 @@ skinparam classAttributeIconSize 0
     }
 
     Abstract Command{
-        +Command(): Command
+        +Command()
         +execute(): void
         +getName(): String
     }
@@ -76,7 +76,7 @@ skinparam classAttributeIconSize 0
     class Cursor{
         -start: Position
         -end: Position
-        +Cursor(): Cursor
+        +Cursor()
         +isSelection()
         +getSelectionSize()
         +getStart()
@@ -89,7 +89,7 @@ skinparam classAttributeIconSize 0
     class Position{
         -col: int
         -line: int
-        +Position(col: int, line: int): Position
+        +Position(col: int, line: int)
         +getCol(): int
         +getLine(): int
     }
@@ -98,51 +98,51 @@ skinparam classAttributeIconSize 0
         -text: String
         -cur: Cursor
         -edit : editor
-        +Write(cur: Cursor, edit: Editor, text: String): Write
+        +Write(cur: Cursor, edit: Editor, text: String)
     }
 
     class Delete {
         -cur: Cursor
         -edit : editor
-        +Delete(cur: Cursor, edit: Editor): Delete
+        +Delete(cur: Cursor, edit: Editor)
     }
 
     class Copy {
         -cur: Cursor
         -edit : editor
         -app: Application
-        +Copy(cur: Cursor, edit: Editor, app: Application): Copy
+        +Copy(cur: Cursor, edit: Editor, app: Application)
     }
 
     class Paste {
         -cur: Cursor
         -edit : editor
         -app: Application
-        +Paste(cur: Cursor, edit: Editor, app: Application): Paste
+        +Paste(cur: Cursor, edit: Editor, app: Application)
     }
 
     class MoveCursor {
         -cur: Cursor
         -pos: Position
-        +MoveCursor(cur: Cursor, pos: Position): MoveCursor
+        +MoveCursor(cur: Cursor, pos: Position)
     }
 
     class Suppr {
         -cur: Cursor
         -edit : editor
-        +Suppr(cur: Cursor, edit: Editor): Suppr
+        +Suppr(cur: Cursor, edit: Editor)
     }
 
-    class MoveCursorStart {
+    class MoveStartCursor {
         -pos: Position
         -cur: Cursor
-        +MoveCursorStart(cur: Cursor, pos: Position): MoveCursorStart
+        +MoveStartCursor(cur: Cursor, pos: Position)
     }
 
-    class MoveCursorEnd {
+    class MoveEndCursor {
         -pos: Position
         -cur: Cursor
-        +MoveCursorEnd(cur: cursor, pos: Position): MoveCursorEnd
+        +MoveEndCursor(cur: cursor, pos: Position)
     }
 
 
@@ -151,8 +151,8 @@ skinparam classAttributeIconSize 0
     Command <|-- Paste 
     Command <|-- Write 
     Command <|-- Copy 
-    Command <|-- StartSelect 
-    Command <|-- EndSelect 
+    Command <|-- MoveStartCursor 
+    Command <|-- MoveEndCursor 
     Command <|-- Delete
     Command <|-- Suppr
     Command <|-- MoveCursor
@@ -164,8 +164,8 @@ skinparam classAttributeIconSize 0
     Paste "1" --> "1" Editor
     Write "1" --> "1"Editor
     Copy "1" --> "1" Editor
-    StartSelect"1" --> "1" Cursor
-    EndSelect "1" --> "1" Cursor 
+    MoveStartCursor"1" --> "1" Cursor
+    MoveEndCursor "1" --> "1" Cursor 
     Delete "1" --> "1" Editor
     Suppr "1" --> "1" Editor
     MoveCursor "1" --> "1" Cursor
@@ -239,7 +239,7 @@ group paste
 end
 
 group selectLeft
-    app -> com: new StartSelect(app)
+    app -> com: new MoveStartCursor(app)
     com -> app: return instance
     app -> com: execute()
     com -> cur: setStart(Position)
@@ -249,7 +249,7 @@ group selectLeft
 end
 
 group selectRight
-    app -> com: new EndSelect(app)
+    app -> com: new MoveEndCursor(app)
     com -> app: return instance
     app -> com: execute()
     com -> cur: setEnd(Position)

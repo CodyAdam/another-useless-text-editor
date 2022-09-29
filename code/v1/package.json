@@ -4,9 +4,9 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "node index.js",
+    "start": "node src/index.js",
     "compile": "tsc",
-    "dev": "nodemon index.ts"
+    "dev": "nodemon src/index.ts"
   },
   "devDependencies": {
     "nodemon": "^2.0.20",
