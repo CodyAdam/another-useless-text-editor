@@ -209,6 +209,8 @@ class Main {
 
   private createCursorMesh() {
     const material = new MeshNormalMaterial();
+    material.opacity= 0.8;
+    material.transparent = true;
     const mesh = new Mesh(new BoxGeometry(10, 135, 100), material);
     return mesh;
   }
