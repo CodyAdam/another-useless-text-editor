@@ -10,6 +10,11 @@ export class Editor {
     console.log("Editor loaded!");
   }
   deleteBetween(start: Position, end: Position): void {
+    if(start.getLine()> end.getLine() || (start.getLine() === end.getLine() && start.getCol()> end.getCol())){
+      const tmp = start;
+      start = end;
+      end = tmp;
+    }
     const length = end.getLine() - start.getLine() + 1;
     if (length === 1) {
       const line = this.content[start.getLine()];
@@ -40,6 +45,11 @@ export class Editor {
     this.content[position.getLine()] = getBefore(line, x) + getAfter(line, x + 1);
   }
   getBetween(start: Position, end: Position): string {
+    if(start.getLine()> end.getLine() || (start.getLine() === end.getLine() && start.getCol()> end.getCol())){
+      const tmp = start;
+      start = end;
+      end = tmp;
+    }
     const allLines = this.content.slice(start.getLine(), end.getLine() + 1);
     if (allLines.length === 1) {
       return getBetween(allLines[0], start.getCol(), end.getCol());
