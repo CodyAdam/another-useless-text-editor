@@ -28,8 +28,10 @@ export class Editor {
     this.content[y] = getBefore(line, x - 1) + getAfter(line, x);
     if (x === 0 && y > 0) {
       this.cur.setStart(this.getEndLinePos(y - 1));
+      this.cur.setEnd(this.getEndLinePos(y - 1));
     } else if (x > 0){
       this.cur.setStart(new Position(y, x - 1));
+      this.cur.setEnd(new Position(y, x - 1));
     }
   }
   deleteAfter(position: Position): void {
@@ -47,15 +49,21 @@ export class Editor {
       return allLines.join('\n');
     }
   }
+
   insertAt(pos: Position, text: string): void {
     const line = this.content[pos.getLine()];
     const toAdd:string[] = text.split('\n');
-    // this.content[pos.getLine()] = getBefore(line, pos.getCol()) + text + getAfter(line, pos.getCol());
     if (toAdd.length === 1) {
       this.content[pos.getLine()] = getBefore(line, pos.getCol()) + text + getAfter(line, pos.getCol());
+      //move cursor to end of inserted text
+      this.cur.setStart(new Position(pos.getLine(), pos.getCol() + text.length));
+      this.cur.setEnd(new Position(pos.getLine(), pos.getCol() + text.length));
     }
     else {
       this.content.splice(pos.getLine(), 1, getBefore(line, pos.getCol()) + toAdd[0], ...toAdd.slice(1, toAdd.length - 1), toAdd[toAdd.length - 1] + getAfter(line, pos.getCol()));
+      //move cursor to end of inserted text 
+      this.cur.setStart(new Position(pos.getLine() + toAdd.length - 1, toAdd[toAdd.length - 1].length));
+      this.cur.setEnd(new Position(pos.getLine() + toAdd.length - 1, toAdd[toAdd.length - 1].length));
     }
   }
 

@@ -69,7 +69,7 @@ class Main {
     // Init camera.
     const aspect = window.innerWidth / window.innerHeight;
     this.camera = new PerspectiveCamera(50, aspect, 1, 100000);
-    this.camera.position.z = 2000;
+    this.camera.position.z = 1000;
 
     // Init renderer.
     this.renderer = new WebGLRenderer({
@@ -226,10 +226,10 @@ class Main {
       height: 20,
       curveSegments: 10,
       bevelEnabled: true,
-      bevelThickness: 7,
-      bevelSize: 2,
-      bevelOffset: 2,
-      bevelSegments: 3
+      bevelThickness: 3,
+      bevelSize: 3,
+      bevelOffset: 1,
+      bevelSegments: 5,
     });
   }
 }
