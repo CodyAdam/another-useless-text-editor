@@ -1,14 +1,15 @@
 # OMD-TP2
 
 # I. Introduction
-Présentation du (projet/sujet)
-Présentation de la méthodologie
-Présentation de l'implémentation
+Dans ce TP, nous allons nous pencher sur la conception d'un editeur de texte. Avant de nous jeter dans la programmation, nous étudierons le fonctionnement d'un éditeur de texte. Nous verrons quelles sont ses fonctionnalités principales, leurs attributs et leur agencement en classe. Puis nous regarderons les différentes intéractions entre-elles et les différents états de l'éditeur. Pour nous permettre d'avoir enfin un code le plus compréhensible, organisé et modulaire possible.
+<!-- Présentation du (projet/sujet) -->
+<!-- Présentation de la méthodologie -->
+<!-- Présentation de l'implémentation -->
 
-# II. Déroulement
+# II. Cahier des charges
 
-Comme pour le TP1, nous cherchons à nous approprier le sujet en faisant un cahier des charges plus lisible et plus adapté à la situation.
-Cahier des
+Comme pour le TP1, nous cherchons à nous approprier le sujet en faisant un cahier des charges plus lisible et plus adapté à la situation que l'énnoncé.
+
 ## Cahier des charges: 
 
 ### V1
@@ -27,14 +28,16 @@ Cahier des
 (autrement dit on peut revenir au début)
 
 ## Plan
-çons ensuite par définir les différents graphoque UML nécessaires avant de commencer l'implémentation :
+Avec notre cahier des charges nous définissons ensuite les différents graphiques UML nécessaires avant de commencer l'implémentation :
 - Diagramme de classe
 - Diagramme séquence
 - Diagramme d'état
 
-## II.1 Diagramme de classe
+# III. Diagrammes UML et conception de la V1 
 
-Puis nous nous lançons dans le diagramme de classe :
+## III.1 Diagramme de classe
+
+Ayant une idée générale des objectif du projet, nous pouvons réflechir à quelles classes remplissent aux mieux les fonctionnalités demandés et quelles sont leur interaction. Nous avons donc décidé de créer le diagramme de classe suivant :
 
 ```plantuml
 @startuml
@@ -172,8 +175,20 @@ skinparam classAttributeIconSize 0
 
 @enduml
 ``` 
+Nous avons choisit comme principales classes de notre projet : **"Editor"**, **"Application"**, **"Command"** et **"Cursor"**. 
 
-## II.2 Diagramme séquence
+- **"Editor"** est la classe qui contient le contenu du buffer, elle seule peut modifier le contenu du buffer.
+
+- **"Application"** est la classe qui contient les différentes commandes et qui permet à l'utilisateur de les exécuter.
+
+- **"Command"** est une classe abstraite qui permet de définir les différentes commandes qui utiliserons les fonctions de "Editor".
+
+- **"Cursor"** est la classe qui contient les **"Position"** s du curseur et qui permet de définir si il y a une sélection.
+
+## III.2 Diagramme séquence
+
+Disposant maintenant de notre diagramme de classes, ainsi que des principales classes, nous pouvons définir les interactions entre celles-ci. Nous avons donc décidé en reprenant nos quatres classes de créer le diagramme séquence suivant :
+
 
 ```plantuml
 @startuml
@@ -262,9 +277,25 @@ end
 
 @enduml
 ``` 
+Nous avons défini 7 interactions principales entre les classes au sein de notre editeur de texte :
 
-## II.3 Diagramme d'état
+- **init** : qui permet d'initialiser l'application avec un éditeur et un curseur.
 
+- **onWrite** : qui défini la procédure permettant d'écrire du texte dans le buffer.
+
+- **onDelete** : qui défini la procédure permettant de supprimer du texte dans le buffer.
+
+- **onCopy** : qui défini la procédure permettant de copier du texte en le stoquant dans le clipboard.
+
+- **onPaste** : qui défini la procédure permettant de coller du texte du clipboard dans le buffer.
+
+- **selectLeft** : qui défini la procédure permettant de déplacer le curseur de gauche.
+
+- **selectRight** : qui défini la procédure permettant de déplacer le curseur de droite.
+
+## III.3 Diagramme d'état
+
+Sachant désormais comment est contruit et fonctionne notre éditeur de texte, nous pouvons essayer de trouver et définir les différents états de notre application. Nous avons donc fini par définir le diagramme d'état suivant : 
 ```plantuml
 @startuml
     state Selection
@@ -287,3 +318,14 @@ end
     NoSelection --> [*] : exit
 @enduml
 ``` 
+Nous avons défini deux états principaux : **"Selection"** et **"NoSelection"** pour notre Editeur. Notre application ne fait qu'alternée entre ces deux états selon les commandes efféctués. Pour cette alternance, nous avons également défini un état intermédiaire qui permet de définir si la commande **"move cursor"** va adoutir à un changement d'état ou non.
+
+## III.4 Implémentation de l'éditeur
+
+Nous avons décider d'implémenter notre éditeur de texte en Web, principalement en TypeScript. Nous avons ainsi programmé notre éditeur en utilisant l'architecture de notre diagramme de classes. Fabriquant ainsi les fichiers **"app.ts"**, **"commands.ts"**, **"cursor.ts"**, **"editor.ts"**, **"index.ts"** et **"position.ts"**. Le fichier **"commands.ts"** contient l'ensemble des classes des commandes pour plus de lisibilité.
+
+<!-- TODO : FALSE -->
+Nous fabriquons ensuite l'interface graphique de notre éditeur de texte en utilisant le framework **"React"**. Nous avons ainsi créé les fichiers **"App.tsx"**, **"index.tsx"** et **"style.css"**. Le fichier **"App.tsx"** contient l'ensemble des composants de notre éditeur de texte.
+
+# III. Diagrammes UML et conception de la V2
+
