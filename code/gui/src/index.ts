@@ -234,10 +234,10 @@ class Main {
           this.app.onPaste();
         else if (e.key === "x")
           this.app.onCut();
-          else if (e.key === "a"){
-            this.app.onMoveStartCursor(new Position(0,0));
-            this.app.onMoveEndCursor(new Position(99999,99999))
-          }
+        else if (e.key === "a") {
+          this.app.onMoveStartCursor(new Position(0, 0));
+          this.app.onMoveEndCursor(new Position(99999, 99999))
+        }
       }
       else
         this.app.onWrite(e.key);
@@ -247,9 +247,10 @@ class Main {
   /** Renders the scene */
   private render() {
     //Update the text
-    if (this.lastText !== this.app.getEditor().getContent()) {
-      this.lastText = this.app.getEditor().getContent();
-      this.text.geometry = this.geometryFromText(this.app.getEditor().getContent());
+    const content = this.app.getEditor().getContent().join('\n');
+    if (this.lastText !== content) {
+      this.lastText = content;
+      this.text.geometry = this.geometryFromText(content);
     }
 
     //Update the cursor

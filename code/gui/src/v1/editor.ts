@@ -92,8 +92,8 @@ export class Editor {
   }
 
 
-  getContent(): string {
-    return this.content.join('\n');
+  getContent(): string[] {
+    return this.content;
   }
 
   clampedPosition(pos: Position): Position {
