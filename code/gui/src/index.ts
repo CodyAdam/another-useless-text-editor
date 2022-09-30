@@ -30,7 +30,7 @@ class Main {
   public scene: Scene;
 
   /** The camera */
-  public camera: PerspectiveCamera | OrthographicCamera;
+  public camera: PerspectiveCamera;
 
   /** The renderer */
   public renderer: WebGLRenderer;
@@ -46,7 +46,8 @@ class Main {
 
   public text: Mesh;
 
-  public cursor: Mesh;
+  public cursorStart: Mesh;
+  public cursorEnd: Mesh;
 
   public font: Font;
 
@@ -55,6 +56,8 @@ class Main {
   public gui: GUI;
 
   public lastText: string;
+
+  public modifiers: { shift: boolean, ctrl: boolean };
 
   public animateCursor: Boolean;
   public animateCamera: Boolean;
@@ -101,15 +104,34 @@ class Main {
     this.text = this.createTextMesh();
     this.scene.add(this.text);
 
-    this.cursor = this.createCursorMesh();
-    this.cursor.position.set(0, 30, 10);
+    this.cursorStart = this.createCursorMesh();
+    this.cursorStart.position.set(0, 30, 10);
+    this.cursorEnd = this.createCursorMesh();
+    this.cursorEnd.position.set(0, 30, 10);
     this.animateCursor = true;
-    this.scene.add(this.cursor);
+    this.scene.add(this.cursorStart);
+    this.scene.add(this.cursorEnd)
 
     this.app = new Application();
     this.app.addRenderListener(() => this.render());
 
+    this.modifiers = {
+      shift: false,
+      ctrl: false
+    }
     window.addEventListener('keydown', (e) => this.onKeyPress(e));
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Shift')
+        this.modifiers.shift = true;
+      if (e.key === "Control")
+        this.modifiers.ctrl = true;
+    })
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'Shift')
+        this.modifiers.shift = false;
+      if (e.key === "Control")
+        this.modifiers.ctrl = false;
+    })
 
     this.createGui();
 
@@ -120,24 +142,25 @@ class Main {
   private createGui() {
     this.gui = new GUI();
     const cursorFold = this.gui.addFolder("Cursor");
-    // cursorFold.add(this.cursor.position, 'x', -1000, 1000, W).name('x').onChange((v) => {
-    //   this.cursor.position.setX(v + CUR_X_OFFSET);
-    //   this.render();
-    // });
-    // cursorFold.add(this.cursor.position, 'y', -1000, 1000, H).name('y').onChange((v) => {
-    //   this.cursor.position.setY(v + CUR_Y_OFFSET);
-    //   this.render();
-    // });
-    cursorFold.add(this.cursor.scale, 'x', 1, 100, .1).name('scale x').onChange(() => this.render());
-    cursorFold.add(this.cursor.scale, 'y', .1, 5, .1).name('scale y').onChange(() => this.render());
-    cursorFold.add(this.cursor.scale, 'z', 1, 5, .1).name('scale z').onChange(() => this.render());
+    cursorFold.add(this.cursorStart.scale, 'x', 1, 100, .1).name('scale x').onChange(() => { this.cursorEnd.scale.x = this.cursorStart.scale.x; this.render() });
+    cursorFold.add(this.cursorStart.scale, 'y', .1, 5, .1).name('scale y').onChange(() => { this.cursorEnd.scale.y = this.cursorStart.scale.y; this.render() });
+    cursorFold.add(this.cursorStart.scale, 'z', 1, 5, .1).name('scale z').onChange(() => { this.cursorEnd.scale.z = this.cursorStart.scale.z; this.render() });
     cursorFold.add(this, "animateCursor").name('animate').onChange(() => this.render());
     cursorFold.open();
     const cameraFold = this.gui.addFolder("Camera");
-    cameraFold.add({ reset: () => { this.camera.position.z = 1000; } }, "reset")
+    cameraFold.add({
+      reset: () => {
+        this.camera.position.x = this.cursorStart.position.x;
+        this.camera.position.y = this.cursorStart.position.y;
+        this.camera.position.z = 1000;
+        this.camera.lookAt(this.cursorStart.position);
+        this.render();
+      }
+    }, "reset").name('reset position').onChange(() => this.render())
     cameraFold.add(this, "animateCamera").name('animate').onChange(() => this.render());
-
+    cameraFold.open();
   }
+
 
   private onKeyPress(e: KeyboardEvent) {
     if (e.key === 'Backspace') {
@@ -180,9 +203,13 @@ class Main {
 
     //Update the cursor
     if (!this.animateCursor) {
-      const cursorPos = this.app.getCursor().getStart();
-      this.cursor.position.setX(cursorPos.getCol() * W + CUR_X_OFFSET);
-      this.cursor.position.setY(-cursorPos.getLine() * H + CUR_Y_OFFSET);
+      const startCur = this.app.getCursor().getStart();
+      const endCur = this.app.getCursor().getEnd();
+      this.cursorStart.position.setX(startCur.getCol() * W + CUR_X_OFFSET);
+      this.cursorStart.position.setY(-startCur.getLine() * H + CUR_Y_OFFSET);
+      this.cursorEnd.position.setX(endCur.getCol() * W + CUR_X_OFFSET);
+      this.cursorEnd.position.setY(-endCur.getLine() * H + CUR_Y_OFFSET);
+
     }
 
     const textCenter = this.text.geometry.boundingSphere?.center;
@@ -197,19 +224,22 @@ class Main {
 
   /** Animates the scene */
   private animate() {
-    if (!this.animateCamera || !this.animateCursor)
+    if (!this.animateCamera && !this.animateCursor)
       return;
     this.stats.begin();
 
     if (this.animateCamera) {
-      this.camera.position.setX(lerp(this.camera.position.x, this.cursor.position.x, 0.01))
-      this.camera.position.setY(lerp(this.camera.position.y, this.cursor.position.y, 0.01))
+      this.camera.position.setX(lerp(this.camera.position.x, this.cursorStart.position.x, 0.01))
+      this.camera.position.setY(lerp(this.camera.position.y, this.cursorStart.position.y, 0.01))
       this.controls.update();
     }
     if (this.animateCursor) {
-      const cursorPos = this.app.getCursor().getStart();
-      this.cursor.position.setX(lerp(this.cursor.position.x, cursorPos.getCol() * W + CUR_X_OFFSET, 0.2))
-      this.cursor.position.setY(lerp(this.cursor.position.y, -cursorPos.getLine() * H + CUR_Y_OFFSET, 0.2))
+      const startCur = this.app.getCursor().getStart();
+      const endCur = this.app.getCursor().getEnd();
+      this.cursorStart.position.setX(lerp(this.cursorStart.position.x, startCur.getCol() * W + CUR_X_OFFSET, 0.2))
+      this.cursorStart.position.setY(lerp(this.cursorStart.position.y, -startCur.getLine() * H + CUR_Y_OFFSET, 0.2))
+      this.cursorEnd.position.setX(lerp(this.cursorEnd.position.x, endCur.getCol() * W + CUR_X_OFFSET, 0.2))
+      this.cursorEnd.position.setY(lerp(this.cursorEnd.position.y, -endCur.getLine() * H + CUR_Y_OFFSET, 0.2))
     }
     this.renderer.render(this.scene, this.camera);
 
