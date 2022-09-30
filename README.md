@@ -324,8 +324,68 @@ Nous avons défini deux états principaux : **"Selection"** et **"NoSelection"**
 
 Nous avons décider d'implémenter notre éditeur de texte en Web, principalement en TypeScript. Nous avons ainsi programmé notre éditeur en utilisant l'architecture de notre diagramme de classes. Fabriquant ainsi les fichiers **"app.ts"**, **"commands.ts"**, **"cursor.ts"**, **"editor.ts"**, **"index.ts"** et **"position.ts"**. Le fichier **"commands.ts"** contient l'ensemble des classes des commandes pour plus de lisibilité.
 
-<!-- TODO : FALSE -->
-Nous fabriquons ensuite l'interface graphique de notre éditeur de texte en utilisant le framework **"React"**. Nous avons ainsi créé les fichiers **"App.tsx"**, **"index.tsx"** et **"style.css"**. Le fichier **"App.tsx"** contient l'ensemble des composants de notre éditeur de texte.
+Nous fabriquons ensuite l'interface graphique de notre éditeur de texte en utilisant le framework **"Three.js"**. Ce va nous permettre d'avoir un éditeur en 3D ludique qui ne pourra pas réutiliser les fonctions de bases du navigateur WEB pour la selection, le copier/coller, etc.
 
-# III. Diagrammes UML et conception de la V2
+# IV. Diagrammes UML et conception de la V2
+
+Nous avons maintenant une version 1 du projet parfaitement opérationelle. Qui a une architecture oraganisée et modulaire, ainsi qu'une interface graphique permettant à l'utilisateur de se servir des différentes commandes.
+
+Cependant, nous avons remarqué que notre éditeur de texte ne permet pas de faire les fonctionnalités avancés de notre cahier des charges. Nous passons ainsi à une version 2 de notre éditeur de texte, qui permettra à l'utilisateur:
+
+- D'enregistrer/rejouer les actions de l'utilisateur (e.g., script) 
+- De réaliser le défaire/refaire, avec une capacité quelconque dans le défaire 
+(autrement dit on peut revenir au début)
+
+## IV.1 Diagramme de classes
+
+Nous réalisons une extension de notre Diagramme de classes pour la version 2 de notre éditeur de texte qui reprend le diagramme de la version 1 comme structure initiale. Nous avons fini par définir le nouveau diagramme de classes suivant : 
+```plantuml
+@startuml
+class App
+@enduml
+```
+Dans cette version 2, nous avons décidé de définir les nouvelles classes **"Script"** et **"History"**. La classe **"Script"** permet de stocker les commandes effectuées par l'utilisateur. La classe **"History"** permet de stocker les commandes effectuées par l'utilisateur et de les annuler/refaire.
+
+## IV.2 Diagramme de séquence
+
+Nous réalisons ici aussi une extension de notre Diagramme de séquence pour la version 2, car les interactions initiales sont toujours possible pour l'utilisateur. Nous avons toutefois à définir en plus les interactions entre les classes **"Script"** et **"History"**. Nous avons fini par définir le nouveau diagramme de séquence suivant : 
+```plantuml
+@startuml
+class App
+@enduml
+```
+Nous avons défini 4 interactions supplémentaires entre les classes au sein de notre editeur de texte :
+
+- **onRecord** : qui défini la procédure permettant d'enregistrer les commandes effectuées par l'utilisateur.
+
+- **onReplay** : qui défini la procédure permettant de rejouer les commandes enregistrées par l'utilisateur.
+
+- **onUndo** : qui défini la procédure permettant d'annuler la dernière commande effectuée par l'utilisateur.
+
+- **onRedo** : qui défini la procédure permettant de refaire la dernière commande annulée par l'utilisateur.
+
+## IV.3 Diagramme d'état
+
+Ayant ainsi la nouvelle structure et le fonctionnent final de notre éditeur, nous pouvons définir quels sont les états définitif de notre application et quels action engendre des changements d'états. Nous avons donc fini par définir le diagramme d'état suivant :
+
+```plantuml
+@startuml
+    state Selection
+    state NoSelection
+@enduml
+```
+Nous avons défini les mêmes états que pour la version 1 de notre éditeur de texte. Nous avons toutefois des changements d'états supplémentaire pour la version 2...
+
+## IV.4 Implémentation de l'éditeur
+
+Nous avons fabriquer pour la version 2, les nouveaux fichiers suivant : **"script.ts"** et **"history.ts"**. Ces fichiers contiennent les classes **"Script"** et **"History"**. Nous avons également modifié les fichiers **"app.ts"** et **"editor.ts"** pour ajouter les nouvelles interactions entre les classes.
+
+Concernant l'interface graphique, nous avons ajouté un bouton **"Record"** qui permet d'enregistrer les commandes effectuées par l'utilisateur. Nous avons également ajouté un bouton **"Replay"** qui permet de rejouer les commandes enregistrées par l'utilisateur. Nous avons également ajouté un bouton **"Undo"** qui permet d'annuler la dernière commande effectuée par l'utilisateur. Nous avons également ajouté un bouton **"Redo"** qui permet de refaire la dernière commande annulée par l'utilisateur.
+
+# V. Conclusion
+
+Dans ce TP, nous avons pu réaliser un éditeur de texte en 3D en utilisant le framework **"Three.js"** permettant à l'utilisateur de faire des actions de base telles que la selection, le copier/coller, etc. Mais aussi des actions avancées telles que l'enregistrement/rejouage des actions de l'utilisateur et le défaire/refaire à l'infini.
+
+Certe la conception du projet qui nous a permis de nous familiariser d'autant plus avec le langage **"TypeScript"** et le Framework **"Three.js"**, mais nous avons surtout pu  nous familiariser avec les diagrammes UML et les diagrammes de séquence. Nous avons pu ainsi définir les interactions entre les classes de notre éditeur de texte et les états de notre application.
+
 
