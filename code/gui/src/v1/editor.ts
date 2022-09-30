@@ -10,7 +10,7 @@ export class Editor {
     console.log("Editor loaded!");
   }
   deleteBetween(start: Position, end: Position): void {
-    if(start.getLine()> end.getLine() || (start.getLine() === end.getLine() && start.getCol()> end.getCol())){
+    if (start.getLine() > end.getLine() || (start.getLine() === end.getLine() && start.getCol() > end.getCol())) {
       const tmp = start;
       start = end;
       end = tmp;
@@ -25,6 +25,8 @@ export class Editor {
       const lastPart = getAfter(this.content[end.getLine()], end.getCol());
       this.content.splice(start.getLine(), length, firstPart + lastPart);
     }
+    this.cur.setStart(start);
+    this.cur.setEnd(start);
   }
   deleteBefore(position: Position): void {
     const x = position.getCol();
@@ -34,7 +36,7 @@ export class Editor {
     if (x === 0 && y > 0) {
       this.cur.setStart(this.getEndLinePos(y - 1));
       this.cur.setEnd(this.getEndLinePos(y - 1));
-    } else if (x > 0){
+    } else if (x > 0) {
       this.cur.setStart(new Position(y, x - 1));
       this.cur.setEnd(new Position(y, x - 1));
     }
@@ -45,7 +47,7 @@ export class Editor {
     this.content[position.getLine()] = getBefore(line, x) + getAfter(line, x + 1);
   }
   getBetween(start: Position, end: Position): string {
-    if(start.getLine()> end.getLine() || (start.getLine() === end.getLine() && start.getCol()> end.getCol())){
+    if (start.getLine() > end.getLine() || (start.getLine() === end.getLine() && start.getCol() > end.getCol())) {
       const tmp = start;
       start = end;
       end = tmp;
@@ -62,7 +64,7 @@ export class Editor {
 
   insertAt(pos: Position, text: string): void {
     const line = this.content[pos.getLine()];
-    const toAdd:string[] = text.split('\n');
+    const toAdd: string[] = text.split('\n');
     if (toAdd.length === 1) {
       this.content[pos.getLine()] = getBefore(line, pos.getCol()) + text + getAfter(line, pos.getCol());
       //move cursor to end of inserted text
@@ -83,6 +85,10 @@ export class Editor {
 
   getStartLinePos(line: number): Position {
     return new Position(line, 0);
+  }
+
+  getLineCount(): number {
+    return this.content.length;
   }
 
 

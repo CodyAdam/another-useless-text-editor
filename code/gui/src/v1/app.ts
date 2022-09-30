@@ -30,7 +30,6 @@ export class Application {
   onCopy(): void {
     const command = new CopyCommand(this.cursor, this.editor, this)
     command.execute();
-
   }
   onPaste(): void {
     const command = new PasteCommand(this.cursor, this.editor, this)
@@ -66,6 +65,10 @@ export class Application {
     const command = new DeleteCommand(this.cursor, this.editor)
     command.execute();
     this.render();
+  }
+  onCut(): void {
+    this.onCopy()
+    this.onDelete()
   }
 
   // GETTERS

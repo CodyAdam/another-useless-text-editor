@@ -163,34 +163,85 @@ class Main {
 
 
   private onKeyPress(e: KeyboardEvent) {
+    console.log(e.key);
+    if (e.key === "Home") {
+      const current = this.app.getCursor().getEnd()
+      if (this.modifiers.shift) {
+        this.app.onMoveEndCursor(this.app.getEditor().getStartLinePos(current.getLine()));
+      }
+      else this.app.onMoveCursor(this.app.getEditor().getStartLinePos(current.getLine()));
+    }
+    if (e.key === "End") {
+      const current = this.app.getCursor().getEnd()
+      if (this.modifiers.shift) {
+        this.app.onMoveEndCursor(this.app.getEditor().getEndLinePos(current.getLine()));
+      }
+      else this.app.onMoveCursor(this.app.getEditor().getEndLinePos(current.getLine()));
+    }
+    if (e.key === "PageUp") {
+      const current = this.app.getCursor().getEnd()
+      if (this.modifiers.shift)
+        this.app.onMoveEndCursor(new Position(0, current.getCol()));
+      else this.app.onMoveCursor(new Position(0, current.getCol()));
+    }
+    if (e.key === "PageDown") {
+      const current = this.app.getCursor().getEnd()
+      const endIndex = this.app.getEditor().getLineCount() - 1;
+      if (this.modifiers.shift) this.app.onMoveEndCursor(new Position(endIndex, current.getCol()));
+      else this.app.onMoveCursor(new Position(endIndex, current.getCol()));
+    }
     if (e.key === 'Backspace') {
       this.app.onBackspace();
     } else if (e.key === "Delete") {
       this.app.onDelete();
     }
     else if (e.key === "ArrowLeft") {
-      const current = this.app.getCursor().getStart()
-      this.app.onMoveCursor(new Position(current.getLine(), current.getCol() - 1));
+      const current = this.app.getCursor().getEnd()
+      if (this.modifiers.shift) {
+        this.app.onMoveEndCursor(new Position(current.getLine(), current.getCol() - 1))
+      }
+      else this.app.onMoveCursor(new Position(current.getLine(), current.getCol() - 1));
     }
     else if (e.key === "ArrowRight") {
-      const current = this.app.getCursor().getStart()
-      this.app.onMoveCursor(new Position(current.getLine(), current.getCol() + 1));
+      const current = this.app.getCursor().getEnd()
+      if (this.modifiers.shift) {
+        this.app.onMoveEndCursor(new Position(current.getLine(), current.getCol() + 1))
+      }
+      else this.app.onMoveCursor(new Position(current.getLine(), current.getCol() + 1));
     }
     else if (e.key === "ArrowUp") {
-      const current = this.app.getCursor().getStart()
-      this.app.onMoveCursor(new Position(current.getLine() - 1, current.getCol()));
+      const current = this.app.getCursor().getEnd()
+      if (this.modifiers.shift) {
+        this.app.onMoveEndCursor(new Position(current.getLine() - 1, current.getCol()))
+      }
+      else this.app.onMoveCursor(new Position(current.getLine() - 1, current.getCol()));
     }
     else if (e.key === "ArrowDown") {
-      const current = this.app.getCursor().getStart()
-      this.app.onMoveCursor(new Position(current.getLine() + 1, current.getCol()));
+      const current = this.app.getCursor().getEnd()
+      if (this.modifiers.shift) {
+        this.app.onMoveEndCursor(new Position(current.getLine() + 1, current.getCol()))
+      }
+      else this.app.onMoveCursor(new Position(current.getLine() + 1, current.getCol()));
     }
     else if (e.key === "Enter") {
       this.app.onWrite("\n");
     }
     else if (e.key.length === 1) {
-      this.app.onWrite(e.key);
+      if (this.modifiers.ctrl) {
+        if (e.key === "c")
+          this.app.onCopy();
+        else if (e.key === "v")
+          this.app.onPaste();
+        else if (e.key === "x")
+          this.app.onCut();
+          else if (e.key === "a"){
+            this.app.onMoveStartCursor(new Position(0,0));
+            this.app.onMoveEndCursor(new Position(99999,99999))
+          }
+      }
+      else
+        this.app.onWrite(e.key);
     }
-
   }
 
   /** Renders the scene */
