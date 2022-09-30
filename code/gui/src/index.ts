@@ -1,5 +1,5 @@
 
-import {
+import THREE, {
   Scene,
   Color,
   Mesh,
@@ -13,14 +13,14 @@ import { TextGeometry } from './TextGeometry';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "stats.js";
 import { Font } from './FontLoader';
-import Application from "../../v1";
+import Application from "./v1";
 import { GUI } from 'dat.gui'
 import font from "./fonts/600.json"
-import { Position } from '../../v1/position';
+import { Position } from './v1/position';
 import { lerp } from 'three/src/math/MathUtils';
 
 const H = 152;
-const W = 72;
+const W = 72.25;
 const CUR_X_OFFSET = 0;
 const CUR_Y_OFFSET = 30;
 
@@ -74,13 +74,13 @@ class Main {
     // Init renderer.
     this.renderer = new WebGLRenderer({
       powerPreference: "low-power",
-      antialias: false
+      antialias: true
     });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.render(this.scene, this.camera);
     // // uncomment if you want to use the animation loop
-    this.renderer.setAnimationLoop(() => this.animate()); 
+    this.renderer.setAnimationLoop(() => this.animate());
     document.body.appendChild(this.renderer.domElement);
     window.addEventListener("resize", () => this.onResize());
 
@@ -115,17 +115,17 @@ class Main {
   private createGui() {
     this.gui = new GUI();
     const cursorFold = this.gui.addFolder("Cursor");
-    cursorFold.add(this.cursor.position, 'x', -1000, 1000, W).name('x').onChange((v) => {
-      this.cursor.position.setX(v + CUR_X_OFFSET);
-      this.render();
-    });
-    cursorFold.add(this.cursor.position, 'y', -1000, 1000, H).name('y').onChange((v) => {
-      this.cursor.position.setY(v + CUR_Y_OFFSET);
-      this.render();
-    });
+    // cursorFold.add(this.cursor.position, 'x', -1000, 1000, W).name('x').onChange((v) => {
+    //   this.cursor.position.setX(v + CUR_X_OFFSET);
+    //   this.render();
+    // });
+    // cursorFold.add(this.cursor.position, 'y', -1000, 1000, H).name('y').onChange((v) => {
+    //   this.cursor.position.setY(v + CUR_Y_OFFSET);
+    //   this.render();
+    // });
     cursorFold.add(this.cursor.scale, 'x', 1, 100, .1).name('scale x').onChange(() => this.render());
-    cursorFold.add(this.cursor.scale, 'y', .1, 30, .1).name('scale y').onChange(() => this.render());
-    cursorFold.add(this.cursor.scale, 'z', 1, 10, .1).name('scale z').onChange(() => this.render());
+    cursorFold.add(this.cursor.scale, 'y', .1, 5, .1).name('scale y').onChange(() => this.render());
+    cursorFold.add(this.cursor.scale, 'z', 1, 5, .1).name('scale z').onChange(() => this.render());
     cursorFold.open();
   }
 
@@ -173,8 +173,12 @@ class Main {
     const cursorPos = cursor.getStart();
     this.cursor.position.setX(cursorPos.getCol() * W + CUR_X_OFFSET);
     this.cursor.position.setY(-cursorPos.getLine() * H + CUR_Y_OFFSET);
-    
 
+    const textCenter = this.text.geometry.boundingSphere?.center;
+    if (textCenter) {
+      this.controls.target.setX(textCenter.x);
+      this.controls.target.setY(textCenter.y);
+    }
     this.stats.begin();
     this.renderer.render(this.scene, this.camera);
     this.stats.end();
@@ -184,9 +188,8 @@ class Main {
   private animate() {
     this.stats.begin();
 
-    this.camera.position.setX(lerp(this.camera.position.x, this.cursor.position.x, 0.1))
-    this.camera.position.setY(lerp(this.camera.position.y, this.cursor.position.y, 0.1))
-    this.camera.lookAt(this.cursor.position);
+    this.camera.position.setX(lerp(this.camera.position.x, this.cursor.position.x, 0.01))
+    this.camera.position.setY(lerp(this.camera.position.y, this.cursor.position.y, 0.01))
 
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
@@ -221,12 +224,12 @@ class Main {
       font: this.font,
       size: 80,
       height: 20,
-      curveSegments: 3,
+      curveSegments: 10,
       bevelEnabled: true,
       bevelThickness: 7,
       bevelSize: 2,
-      bevelOffset: 1,
-      bevelSegments: 5
+      bevelOffset: 2,
+      bevelSegments: 3
     });
   }
 }

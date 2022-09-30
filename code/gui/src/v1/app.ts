@@ -87,7 +87,6 @@ export class Application {
   }
   render(): void {
     this.listeners.forEach(listener => listener());
-    console.log("Rendered!");
   }
 }
 
