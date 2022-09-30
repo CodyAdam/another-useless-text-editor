@@ -14,7 +14,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "stats.js";
 import { Font } from './FontLoader';
 import Application from "../../v1";
-
+import { GUI } from 'dat.gui'
 import font from "./fonts/600.json"
 
 
@@ -39,16 +39,22 @@ class Main {
 
   public text: Mesh;
 
+  public cursor: Mesh;
+
   public font: Font;
 
   public app: Application;
+
+  public gui: GUI;
+
+  public lastText: string;
 
   constructor() {
     this.init();
   }
 
   /** Initialize the viewport */
-  public init() {
+  private init() {
     // Init scene. 
     this.scene = new Scene();
     this.scene.background = new Color("#191919");
@@ -66,7 +72,8 @@ class Main {
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.render(this.scene, this.camera);
-    // this.renderer.setAnimationLoop(() => this.animate()); // uncomment if you want to use the animation loop
+    // // uncomment if you want to use the animation loop
+    // this.renderer.setAnimationLoop(() => this.animate()); 
     document.body.appendChild(this.renderer.domElement);
     window.addEventListener("resize", () => this.onResize());
 
@@ -83,39 +90,56 @@ class Main {
     this.text = this.createTextMesh();
     this.scene.add(this.text);
 
+    this.cursor = this.createCursorMesh();
+    this.scene.add(this.cursor);
+
     this.app = new Application();
     this.app.addRenderListener(() => this.render());
 
-    window.addEventListener('keydown', (e) => {
-      //if letter log it
-      if (e.key.length === 1) {
-        console.log(e.key);
-        this.app.onWrite(e.key);
-      }
-    });
+    window.addEventListener('keydown', (e) => this.onKeyPress(e));
+
+    this.gui = new GUI();
+    const cursorFold = this.gui.addFolder("Cursor");
+    cursorFold.add(this.cursor.position, 'x', -10, 10, .2)
+    cursorFold.add(this.cursor.position, 'y', -10, 10, .2)
+    cursorFold.add(this.cursor.position, 'z', -10, 10, .2)
+    cursorFold.open();
 
     this.render();
     console.log(this);
   }
 
-  /** Renders the scene */
-  public render() {
-    //Update the text
-    this.text.geometry = geometryFromText(this.app.getEditor().getContent(), this.font);
-    console.log(this.app.getEditor().getContent());
-    
+  private onKeyPress(e: KeyboardEvent) {
+    console.log(e.key)
+    if (e.key === 'Backspace') {
+      this.app.onBackspace();
+    } else if (e.key === "Delete") {
+      this.app.onDelete();
+    }
+    else if (e.key.length === 1) {
+      this.app.onWrite(e.key);
+    }
 
+  }
+
+  /** Renders the scene */
+  private render() {
+    //Update the text
+    if (this.lastText !== this.app.getEditor().getContent()) {
+      this.lastText = this.app.getEditor().getContent();
+      this.text.geometry = this.geometryFromText(this.app.getEditor().getContent());
+    }
     this.stats.begin();
     this.renderer.render(this.scene, this.camera);
     this.stats.end();
   }
 
   /** Animates the scene */
-  public animate() {
+  private animate() {
     this.stats.begin();
 
-    this.cube.rotation.x += 0.005;
-    this.cube.rotation.y += 0.001;
+    this.text.rotation.x += 0.005;
+    this.text.rotation.y += 0.001;
 
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
@@ -124,7 +148,7 @@ class Main {
   }
 
   /** On resize event */
-  public onResize() {
+  private onResize() {
     if (this.camera instanceof PerspectiveCamera) {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
@@ -133,34 +157,34 @@ class Main {
     this.render();
   }
 
-  /** Creates a cube mesh */
-  public createCubeMesh() {
-    const geometry = new BoxGeometry(200, 200, 200);
+  private createCursorMesh() {
     const material = new MeshNormalMaterial();
-    const mesh = new Mesh(geometry, material);
+    const mesh = new Mesh(new BoxGeometry(10, 10, 10), material);
     return mesh;
   }
 
-  public createTextMesh(text: string = "Default") {
+  private createTextMesh(text: string = "Default") {
     const material = new MeshNormalMaterial();
-    const mesh = new Mesh(geometryFromText(text, this.font), material);
+    const mesh = new Mesh(this.geometryFromText(text), material);
     return mesh;
+  }
+
+  private geometryFromText(text: string) {
+    return new TextGeometry(text, {
+      font: this.font,
+      size: 80,
+      height: 20,
+      curveSegments: 3,
+      bevelEnabled: true,
+      bevelThickness: 7,
+      bevelSize: 2,
+      bevelOffset: 1,
+      bevelSegments: 5
+    });
   }
 }
 
 
-function geometryFromText(text:string, font: Font) {
-  return new TextGeometry(text, {
-    font: font,
-    size: 80,
-    height: 20,
-    curveSegments: 3,
-    bevelEnabled: true,
-    bevelThickness: 7,
-    bevelSize: 2,
-    bevelOffset: 1,
-    bevelSegments: 5
-  });
-}
+
 
 new Main();

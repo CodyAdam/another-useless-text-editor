@@ -1,11 +1,11 @@
 import {
   CopyCommand,
-  DeleteCommand,
+  BackspaceCommand,
   MoveCursorCommand,
   MoveEndCursorCommand,
   MoveStartCursorCommand,
   PasteCommand,
-  SupprCommand,
+  DeleteCommand,
   WriteCommand
 } from './commands';
 import { Cursor } from './cursor';
@@ -44,8 +44,8 @@ export class Application {
     console.log(command.getName());
     this.render();
   }
-  onDelete(): void {
-    const command = new DeleteCommand(this.cursor, this.editor)
+  onBackspace(): void {
+    const command = new BackspaceCommand(this.cursor, this.editor)
     command.execute();
     console.log(command.getName());
     this.render();
@@ -68,8 +68,8 @@ export class Application {
     console.log(command.getName());
     this.render();
   }
-  onSuppr(): void {
-    const command = new SupprCommand(this.cursor, this.editor)
+  onDelete(): void {
+    const command = new DeleteCommand(this.cursor, this.editor)
     command.execute();
     console.log(command.getName());
     this.render();
