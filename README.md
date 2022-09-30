@@ -1,10 +1,9 @@
 # OMD-TP2
 
+## Thomas Delapart & Cody Adam
+
 # I. Introduction
 Dans ce TP, nous allons nous pencher sur la conception d'un editeur de texte. Avant de nous jeter dans la programmation, nous étudierons le fonctionnement d'un éditeur de texte. Nous verrons quelles sont ses fonctionnalités principales, leurs attributs et leur agencement en classe. Puis nous regarderons les différentes intéractions entre-elles et les différents états de l'éditeur. Pour nous permettre d'avoir enfin un code le plus compréhensible, organisé et modulaire possible.
-<!-- Présentation du (projet/sujet) -->
-<!-- Présentation de la méthodologie -->
-<!-- Présentation de l'implémentation -->
 
 # II. Cahier des charges
 
@@ -28,7 +27,7 @@ Comme pour le TP1, nous cherchons à nous approprier le sujet en faisant un cahi
 (autrement dit on peut revenir au début)
 
 ## Plan
-Avec notre cahier des charges nous définissons ensuite les différents graphiques UML nécessaires avant de commencer l'implémentation :
+Avec notre cahier des charges nous définissons ensuite les différents graphiques UML qui nous seront nécessaires avant de commencer l'implémentation :
 - Diagramme de classe
 - Diagramme séquence
 - Diagramme d'état
@@ -292,13 +291,15 @@ end
 
 @enduml
 ``` 
-Nous avons défini 7 interactions principales entre les classes au sein de notre editeur de texte :
+Nous avons défini 8 interactions principales entre les classes au sein de notre editeur de texte :
 
 - **init** : qui permet d'initialiser l'application avec un éditeur et un curseur.
 
 - **onWrite** : qui défini la procédure permettant d'écrire du texte dans le buffer.
 
-- **onDelete** : qui défini la procédure permettant de supprimer du texte dans le buffer.
+- **onDelete** : qui défini la procédure permettant de supprimer du texte après le curseur dans le buffer.
+
+- **onBackSpace** : qui défini la procédure permettant de supprimer du texte avant le curseur dans le buffer.
 
 - **onCopy** : qui défini la procédure permettant de copier du texte en le stoquant dans le clipboard.
 
@@ -401,6 +402,6 @@ Concernant l'interface graphique, nous avons ajouté un bouton **"Record"** qui 
 
 Dans ce TP, nous avons pu réaliser un éditeur de texte en 3D en utilisant le framework **"Three.js"** permettant à l'utilisateur de faire des actions de base telles que la selection, le copier/coller, etc. Mais aussi des actions avancées telles que l'enregistrement/rejouage des actions de l'utilisateur et le défaire/refaire à l'infini.
 
-Certe la conception du projet qui nous a permis de nous familiariser d'autant plus avec le langage **"TypeScript"** et le Framework **"Three.js"**, mais nous avons surtout pu  nous familiariser avec les diagrammes UML et les diagrammes de séquence. Nous avons pu ainsi définir les interactions entre les classes de notre éditeur de texte et les états de notre application.
+Certe la conception du projet qui nous a permis de nous familiariser d'autant plus avec le langage **"TypeScript"** et le Framework **"Three.js"**, mais nous a surtout permis de mener à terme un projet bien organisé. En effet nous avons correctement dénini notre structure avec les diagrammes UML de sorte à ce qu'elle réponde parfaitement à nos attentes. Nous avons deplus grâce à la structure modulaire du projet pu ajouter de nouvelles fonctionnalités sans difficultés à notre application.
 
-
+C'est en conclusion une démarche claire et utile que nous seront surement ammené à reconduire pour nos futurs projets.
