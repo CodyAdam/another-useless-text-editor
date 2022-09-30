@@ -64,7 +64,7 @@ skinparam classAttributeIconSize 0
         +onMoveStartCursor(pos: Position): void
         +onMoveEndCursor(pos: Position): void
         +onMoveCursor(pos: Position): void
-        +onSuppr(): void
+        +onBackSpace(): void
         +getCursor(): Cursor
         +getClipboard(): String
         +getEditor(): Editor
@@ -130,10 +130,10 @@ skinparam classAttributeIconSize 0
         +MoveCursor(cur: Cursor, pos: Position)
     }
 
-    class Suppr {
+    class BackSpace {
         -cur: Cursor
         -edit : editor
-        +Suppr(cur: Cursor, edit: Editor)
+        +BackSpace(cur: Cursor, edit: Editor)
     }
 
     class MoveStartCursor {
@@ -157,7 +157,7 @@ skinparam classAttributeIconSize 0
     Command <|-- MoveStartCursor 
     Command <|-- MoveEndCursor 
     Command <|-- Delete
-    Command <|-- Suppr
+    Command <|-- BackSpace
     Command <|-- MoveCursor
 
 
@@ -170,7 +170,7 @@ skinparam classAttributeIconSize 0
     MoveStartCursor"1" --> "1" Cursor
     MoveEndCursor "1" --> "1" Cursor 
     Delete "1" --> "1" Editor
-    Suppr "1" --> "1" Editor
+    BackSpace "1" --> "1" Editor
     MoveCursor "1" --> "1" Cursor
 
 @enduml
@@ -220,7 +220,22 @@ group onDelete
     com -> app: return instance
     app -> com: execute()
     alt #Gold if cur.isSelection()
-        com -> edit: editor.(cur.getStart(), cur.getEnd())
+        com -> edit: editor.deleteBetween(cur.getStart(), cur.getEnd())
+        edit -> com: return void
+    else #LightBlue else
+        com -> edit: deletAfter(cur.getStart())
+        edit -> com: return void
+    end
+    com -> app: render()
+    app -> com: return void
+    com -> app: return void
+end
+group onBackSpace
+    app -> com: new BackSpace(app)
+    com -> app: return instance
+    app -> com: execute()
+    alt #Gold if cur.isSelection()
+        com -> edit: editor.deleteBetween(cur.getStart(), cur.getEnd())
         edit -> com: return void
     else #LightBlue else
         com -> edit: deletBefore(cur.getStart())
