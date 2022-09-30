@@ -4,13 +4,20 @@ import {
   Color,
   Mesh,
   MeshNormalMaterial,
-  BoxBufferGeometry,
+  BoxGeometry,
   PerspectiveCamera,
   WebGLRenderer,
-  OrthographicCamera
+  OrthographicCamera,
+  FileLoader
 } from "three";
+import { TextGeometry } from './TextGeometry';
+import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "stats.js";
+import { Font, FontLoader } from './FontLoader';
+
+import font from "./fonts/600.json"
+
 
 class Main {
   /** The scene */
@@ -31,19 +38,23 @@ class Main {
   /** The cube mesh */
   public cube: Mesh;
 
+  public text: Mesh;
+
+  public font: Font;
+
   constructor() {
     this.initViewport();
   }
 
   /** Initialize the viewport */
   public initViewport() {
-    // Init scene.
+    // Init scene. 
     this.scene = new Scene();
     this.scene.background = new Color("#191919");
 
     // Init camera.
     const aspect = window.innerWidth / window.innerHeight;
-    this.camera = new PerspectiveCamera(50, aspect, 1, 1000);
+    this.camera = new PerspectiveCamera(50, aspect, 1, 100000);
     this.camera.position.z = 700;
 
     // Init renderer.
@@ -67,11 +78,14 @@ class Main {
     this.controls.update();
     this.controls.addEventListener("change", () => this.render());
 
-    // Add test mesh.
-    this.cube = this.createCubeMesh();
-    this.scene.add(this.cube);
-    this.render();
+    // this.cube = this.createCubeMesh();
+    // this.scene.add(this.cube);
 
+    this.font = new Font(font);
+    this.text = this.createTextMesh();
+    this.scene.add(this.text);
+
+    this.render();
     console.log(this);
   }
 
@@ -107,7 +121,24 @@ class Main {
 
   /** Creates a cube mesh */
   public createCubeMesh() {
-    const geometry = new BoxBufferGeometry(200, 200, 200);
+    const geometry = new BoxGeometry(200, 200, 200);
+    const material = new MeshNormalMaterial();
+    const mesh = new Mesh(geometry, material);
+    return mesh;
+  }
+
+  public createTextMesh() {
+    const geometry = new TextGeometry('Hello three.js!\n djwaidjwaoidjwaijo\nwadwadwajiji', {
+      font: this.font,
+      size: 80,
+      height: 20,
+      curveSegments: 12,
+      bevelEnabled: true,
+      bevelThickness: 7,
+      bevelSize: 2,
+      bevelOffset: 1,
+      bevelSegments: 5
+    });
     const material = new MeshNormalMaterial();
     const mesh = new Mesh(geometry, material);
     return mesh;

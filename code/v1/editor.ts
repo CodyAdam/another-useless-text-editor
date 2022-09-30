@@ -43,8 +43,8 @@ export class Editor {
     this.content[pos.getLine()] = getBefore(line, pos.getCol()) + text + getAfter(line, pos.getCol());
   }
 
-  getContent(): string[] {
-    return this.content;
+  getContent(): string {
+    return this.content.join('\n');
   }
 }
 
