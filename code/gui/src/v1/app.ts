@@ -23,6 +23,7 @@ export class Application {
     this.cursor = new Cursor();
     this.editor = new Editor(this.cursor);
     this.render();
+    this.onWrite("Hello World!")
     console.log("Application successfully loaded!\n\n");
   }
 
