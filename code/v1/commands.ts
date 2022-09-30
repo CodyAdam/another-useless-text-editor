@@ -16,7 +16,7 @@ abstract class Command {
   }
 }
 
-export class DeleteCommand extends Command {
+export class BackspaceCommand extends Command {
   private cur: Cursor;
   private edit: Editor;
   constructor(cur: Cursor, edit: Editor) {
@@ -104,7 +104,7 @@ export class MoveCursorCommand extends Command {
   }
 }
 
-export class SupprCommand extends Command {
+export class DeleteCommand extends Command {
   private cur: Cursor;
   private edit: Editor;
   constructor(cur: Cursor, edit: Editor) {

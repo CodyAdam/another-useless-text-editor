@@ -9,9 +9,11 @@
   "dependencies": {
     "parcel": "^2.7.0",
     "stats.js": "0.17.0",
-    "three": "^0.145.0"
+    "three": "^0.145.0",
+    "dat.gui": "^0.7.9"
   },
   "devDependencies": {
+    "@types/dat.gui": "^0.7.7",
     "@types/stats.js": "^0.17.0",
     "@types/three": "^0.144.0"
   }
