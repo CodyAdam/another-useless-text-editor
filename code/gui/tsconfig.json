@@ -6,14 +6,17 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "allowJs": true,
+    "outDir": "./dist",
     "lib": [
       "es6",
       "dom"
     ],
-    "rootDir": "src",
     "moduleResolution": "node",
     "strictPropertyInitialization": false,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true
-  }
+  },
+  "exclude": [
+    "./dist/**/*"
+  ]
 }

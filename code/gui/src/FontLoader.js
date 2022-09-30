@@ -1,44 +1,6 @@
 import {
-	FileLoader,
-	Loader,
 	ShapePath
 } from 'three';
-
-class FontLoader extends Loader {
-
-	constructor( manager ) {
-
-		super( manager );
-
-	}
-
-	load( url, onLoad, onProgress, onError ) {
-
-		const scope = this;
-
-		const loader = new FileLoader( this.manager );
-		loader.setPath( this.path );
-		loader.setRequestHeader( this.requestHeader );
-		loader.setWithCredentials( this.withCredentials );
-		loader.load( url, function ( text ) {
-
-			const font = scope.parse( JSON.parse( text ) );
-
-			if ( onLoad ) onLoad( font );
-
-		}, onProgress, onError );
-
-	}
-
-	parse( json ) {
-
-		return new Font( json );
-
-	}
-
-}
-
-//
 
 class Font {
 
@@ -180,4 +142,4 @@ function createPath( char, scale, offsetX, offsetY, data ) {
 
 }
 
-export { FontLoader, Font };
+export { Font };

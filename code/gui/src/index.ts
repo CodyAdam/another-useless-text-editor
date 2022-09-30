@@ -8,13 +8,12 @@ import {
   PerspectiveCamera,
   WebGLRenderer,
   OrthographicCamera,
-  FileLoader
 } from "three";
 import { TextGeometry } from './TextGeometry';
-import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "stats.js";
-import { Font, FontLoader } from './FontLoader';
+import { Font } from './FontLoader';
+import Application from "../../v1";
 
 import font from "./fonts/600.json"
 
@@ -42,12 +41,14 @@ class Main {
 
   public font: Font;
 
+  public app: Application;
+
   constructor() {
-    this.initViewport();
+    this.init();
   }
 
   /** Initialize the viewport */
-  public initViewport() {
+  public init() {
     // Init scene. 
     this.scene = new Scene();
     this.scene.background = new Color("#191919");
@@ -59,8 +60,8 @@ class Main {
 
     // Init renderer.
     this.renderer = new WebGLRenderer({
-      powerPreference: "high-performance",
-      antialias: true
+      powerPreference: "low-power",
+      antialias: false
     });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -78,12 +79,20 @@ class Main {
     this.controls.update();
     this.controls.addEventListener("change", () => this.render());
 
-    // this.cube = this.createCubeMesh();
-    // this.scene.add(this.cube);
-
     this.font = new Font(font);
     this.text = this.createTextMesh();
     this.scene.add(this.text);
+
+    this.app = new Application();
+    this.app.addRenderListener(() => this.render());
+
+    window.addEventListener('keydown', (e) => {
+      //if letter log it
+      if (e.key.length === 1) {
+        console.log(e.key);
+        this.app.onWrite(e.key);
+      }
+    });
 
     this.render();
     console.log(this);
@@ -91,6 +100,11 @@ class Main {
 
   /** Renders the scene */
   public render() {
+    //Update the text
+    this.text.geometry = geometryFromText(this.app.getEditor().getContent(), this.font);
+    console.log(this.app.getEditor().getContent());
+    
+
     this.stats.begin();
     this.renderer.render(this.scene, this.camera);
     this.stats.end();
@@ -127,22 +141,26 @@ class Main {
     return mesh;
   }
 
-  public createTextMesh() {
-    const geometry = new TextGeometry('Hello three.js!\n djwaidjwaoidjwaijo\nwadwadwajiji', {
-      font: this.font,
-      size: 80,
-      height: 20,
-      curveSegments: 12,
-      bevelEnabled: true,
-      bevelThickness: 7,
-      bevelSize: 2,
-      bevelOffset: 1,
-      bevelSegments: 5
-    });
+  public createTextMesh(text: string = "Default") {
     const material = new MeshNormalMaterial();
-    const mesh = new Mesh(geometry, material);
+    const mesh = new Mesh(geometryFromText(text, this.font), material);
     return mesh;
   }
+}
+
+
+function geometryFromText(text:string, font: Font) {
+  return new TextGeometry(text, {
+    font: font,
+    size: 80,
+    height: 20,
+    curveSegments: 3,
+    bevelEnabled: true,
+    bevelThickness: 7,
+    bevelSize: 2,
+    bevelOffset: 1,
+    bevelSegments: 5
+  });
 }
 
 new Main();

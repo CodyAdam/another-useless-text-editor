@@ -7,15 +7,15 @@ export class Editor {
     console.log("Editor loaded!");
   }
   deleteBetween(start: Position, end: Position): void {
-    const allLinesIndexes = range(start.getLine(), end.getLine() + 1);
-    if (allLinesIndexes.length === 1) {
+    const length = end.getLine() - start.getLine() + 1;
+    if (length === 1) {
         const line = this.content[start.getLine()];
         this.content[start.getLine()] = getBefore(line, start.getCol()) + getAfter(line, end.getCol());
     }
     else {
         const firstPart = getBefore(this.content[start.getLine()], start.getCol());
         const lastPart = getAfter(this.content[end.getLine()], end.getCol());
-        this.content.splice( start.getLine(), allLinesIndexes.length, firstPart + lastPart);
+        this.content.splice( start.getLine(), length, firstPart + lastPart);
     }
   }
   deleteBefore(position: Position): void {
@@ -50,14 +50,6 @@ export class Editor {
 
 
 // Helper function 
-
-function range(start: number, end: number): number[] {
-  const result = [];
-  for (let i = start; i <= end; i++) {
-    result.push(i);
-  }
-  return result;
-}
 
 function getBetween(string: string, indexStart: number, indexEnd: number): string {
   return string.substring(indexStart, indexEnd);
