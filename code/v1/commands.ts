@@ -25,7 +25,7 @@ export class BackspaceCommand extends Command {
     this.edit = edit;
   }
   execute(): void {
-    console.log('DeleteCommand');
+    console.log('Backspace ' + this.cur.getStart().toString());
     if (this.cur.isSelection()){
       this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
       this.cur.setEnd(this.cur.getStart());
@@ -46,6 +46,7 @@ export class WriteCommand extends Command {
     this.text = text;
   }
   execute(): void {
+    console.log('Write ' + this.cur.getStart().toString() + ' ' + this.text);
     if (this.cur.isSelection()) {
       this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
       this.cur.setEnd(this.cur.getStart());
@@ -66,6 +67,8 @@ export class CopyCommand extends Command {
   }
   execute(): void {
     const newClip = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
+    console.log('Copy ' + this.cur.getStart().toString() + ' ' + this.cur.getEnd().toString() + ' ' + newClip);
+    
     this.app.setClipboard(newClip);
   }
 }
@@ -82,6 +85,7 @@ export class PasteCommand extends Command {
   }
   execute(): void {
     const clip = this.app.getClipboard();
+    console.log('Paste ' + this.cur.getStart().toString() + ' ' + clip);
     if (this.cur.isSelection()) {
       this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
       this.cur.setEnd(this.cur.getStart());
@@ -99,6 +103,7 @@ export class MoveCursorCommand extends Command {
     this.pos = pos;
   }
   execute(): void {
+    console.log('MoveCursor ' + this.cur.getStart().toString() + ' ' + this.pos.toString());
     this.cur.setStart(this.pos);
     this.cur.setEnd(this.pos);
   }
@@ -108,11 +113,12 @@ export class DeleteCommand extends Command {
   private cur: Cursor;
   private edit: Editor;
   constructor(cur: Cursor, edit: Editor) {
-    super('Suppr');
+    super('Delete');
     this.cur = cur;
     this.edit = edit;
   }
   execute(): void {
+    console.log('Delete ' + this.cur.getStart().toString());
     if (this.cur.isSelection()) {
       this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
       this.cur.setEnd(this.cur.getStart());
@@ -131,6 +137,7 @@ export class MoveStartCursorCommand extends Command {
     this.pos = pos;
   }
   execute(): void {
+    console.log('MoveStartCursor ' + this.cur.getStart().toString() + ' ' + this.pos.toString());
     this.cur.setStart(this.pos);
   }
 }
@@ -144,6 +151,7 @@ export class MoveEndCursorCommand extends Command {
     this.pos = pos;
   }
   execute(): void {
+    console.log('MoveEndCursor ' + this.cur.getEnd().toString() + ' ' + this.pos.toString());
     this.cur.setEnd(this.pos);
   }
 }

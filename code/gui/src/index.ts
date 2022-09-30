@@ -130,7 +130,6 @@ class Main {
   }
 
   private onKeyPress(e: KeyboardEvent) {
-    console.log(e.key)
     if (e.key === 'Backspace') {
       this.app.onBackspace();
     } else if (e.key === "Delete") {
@@ -174,7 +173,7 @@ class Main {
     const cursorPos = cursor.getStart();
     this.cursor.position.setX(cursorPos.getCol() * W + CUR_X_OFFSET);
     this.cursor.position.setY(-cursorPos.getLine() * H + CUR_Y_OFFSET);
-
+    
 
     this.stats.begin();
     this.renderer.render(this.scene, this.camera);

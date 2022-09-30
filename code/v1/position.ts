@@ -11,4 +11,8 @@ export class Position {
   getCol() {
     return this.col;
   }
+
+  toString() {
+    return `(y:${this.line}, x:${this.col})`;
+  }
 }

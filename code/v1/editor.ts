@@ -1,27 +1,36 @@
+import { Cursor } from './cursor';
 import { Position } from './position';
 
 export class Editor {
+  private cur: Cursor
   private content: string[];
-  constructor() {
+  constructor(cur: Cursor) {
+    this.cur = cur;
     this.content = [""];
     console.log("Editor loaded!");
   }
   deleteBetween(start: Position, end: Position): void {
     const length = end.getLine() - start.getLine() + 1;
     if (length === 1) {
-        const line = this.content[start.getLine()];
-        this.content[start.getLine()] = getBefore(line, start.getCol()) + getAfter(line, end.getCol());
+      const line = this.content[start.getLine()];
+      this.content[start.getLine()] = getBefore(line, start.getCol()) + getAfter(line, end.getCol());
     }
     else {
-        const firstPart = getBefore(this.content[start.getLine()], start.getCol());
-        const lastPart = getAfter(this.content[end.getLine()], end.getCol());
-        this.content.splice( start.getLine(), length, firstPart + lastPart);
+      const firstPart = getBefore(this.content[start.getLine()], start.getCol());
+      const lastPart = getAfter(this.content[end.getLine()], end.getCol());
+      this.content.splice(start.getLine(), length, firstPart + lastPart);
     }
   }
   deleteBefore(position: Position): void {
-    const line = this.content[position.getLine()];
-        const x = position.getCol();
-        this.content[position.getLine()] = getBefore(line, x - 1) + getAfter(line, x);
+    const x = position.getCol();
+    const y = position.getLine();
+    const line = this.content[y];
+    this.content[y] = getBefore(line, x - 1) + getAfter(line, x);
+    if (x === 0 && y > 0) {
+      this.cur.setStart(this.getEndLinePos(y - 1));
+    } else if (x > 0){
+      this.cur.setStart(new Position(y, x - 1));
+    }
   }
   deleteAfter(position: Position): void {
     const line = this.content[position.getLine()];
@@ -40,11 +49,40 @@ export class Editor {
   }
   insertAt(pos: Position, text: string): void {
     const line = this.content[pos.getLine()];
-    this.content[pos.getLine()] = getBefore(line, pos.getCol()) + text + getAfter(line, pos.getCol());
+    const toAdd:string[] = text.split('\n');
+    // this.content[pos.getLine()] = getBefore(line, pos.getCol()) + text + getAfter(line, pos.getCol());
+    if (toAdd.length === 1) {
+      this.content[pos.getLine()] = getBefore(line, pos.getCol()) + text + getAfter(line, pos.getCol());
+    }
+    else {
+      this.content.splice(pos.getLine(), 1, getBefore(line, pos.getCol()) + toAdd[0], ...toAdd.slice(1, toAdd.length - 1), toAdd[toAdd.length - 1] + getAfter(line, pos.getCol()));
+    }
   }
+
+  getEndLinePos(line: number): Position {
+    return new Position(line, this.content[line].length);
+  }
+
+  getStartLinePos(line: number): Position {
+    return new Position(line, 0);
+  }
+
 
   getContent(): string {
     return this.content.join('\n');
+  }
+
+  clampedPosition(pos: Position): Position {
+    const x = pos.getCol();
+    const y = pos.getLine();
+    const line = this.content[y];
+    if (x < 0) {
+      return new Position(y, 0);
+    }
+    if (x > line.length) {
+      return new Position(y, line.length);
+    }
+    return pos;
   }
 }
 
@@ -56,13 +94,13 @@ function getBetween(string: string, indexStart: number, indexEnd: number): strin
 }
 
 function getAfter(text: string, index: number): string {
-  if (index < 0) 
+  if (index < 0)
     return text;
   return text.slice(index);
 }
 
 function getBefore(text: string, index: number): string {
-  if (index < 0) 
+  if (index < 0)
     return "";
   return text.slice(0, index);
 }

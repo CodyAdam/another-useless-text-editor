@@ -18,10 +18,10 @@ export class Application {
   private cursor: Cursor;
   private listeners: (() => void)[] = [];
   constructor() {
-    console.log("\nLoading application...");
-    this.editor = new Editor();
+    console.log("\nLoading application... vclamp");
     this.clipboard = "";
     this.cursor = new Cursor();
+    this.editor = new Editor(this.cursor);
     this.render();
     console.log("Application successfully loaded!\n\n");
   }
@@ -29,49 +29,41 @@ export class Application {
   onCopy(): void {
     const command = new CopyCommand(this.cursor, this.editor, this)
     command.execute();
-    console.log(command.getName());
-    
+
   }
   onPaste(): void {
     const command = new PasteCommand(this.cursor, this.editor, this)
     command.execute();
-    console.log(command.getName());
     this.render();
   }
   onWrite(text: string): void {
     const command = new WriteCommand(this.cursor, this.editor, text)
     command.execute();
-    console.log(command.getName());
     this.render();
   }
   onBackspace(): void {
     const command = new BackspaceCommand(this.cursor, this.editor)
     command.execute();
-    console.log(command.getName());
     this.render();
   }
-  onMoveCursor(position: Position): void {
-    const command = new MoveCursorCommand(this.cursor, position)
+  onMoveCursor(pos: Position): void {
+    const command = new MoveCursorCommand(this.cursor, this.editor.clampedPosition(pos))
     command.execute();
-    console.log(command.getName());
     this.render();
   }
-  onMoveStartCursor(pos : Position): void {
-    const command = new MoveStartCursorCommand(this.cursor, pos)
+  onMoveStartCursor(pos: Position): void {
+    const command = new MoveStartCursorCommand(this.cursor, this.editor.clampedPosition(pos))
     command.execute();
-    console.log(command.getName());
     this.render();
   }
-  onMoveEndCursor(pos : Position): void {
-    const command = new MoveEndCursorCommand(this.cursor, pos)
+  onMoveEndCursor(pos: Position): void {
+    const command = new MoveEndCursorCommand(this.cursor, this.editor.clampedPosition(pos))
     command.execute();
-    console.log(command.getName());
     this.render();
   }
   onDelete(): void {
     const command = new DeleteCommand(this.cursor, this.editor)
     command.execute();
-    console.log(command.getName());
     this.render();
   }
 

@@ -38,8 +38,9 @@ Ayant une idée générale des objectif du projet, nous pouvons réflechir à qu
 @startuml
 skinparam classAttributeIconSize 0
     class Editor {
+        -cur: Cursor
         -content: List<String>
-        +Editor()
+        +Editor(cur: Cursor)
         +deleteBetween(start: Position, end: Position): void
         +deleteBefore(pos: Position): void
         +deleteAfter(pos: Position): void
@@ -195,10 +196,10 @@ participant Cursor as cur
 participant Command as com
 
 group init (app constructor)
-    app -> edit: new Editor()
-    edit -> app: return instance
     app -> cur: new Cursor()
     cur -> app: return instance
+    app -> edit: new Editor(cur)
+    edit -> app: return instance
 end
 
 group write
