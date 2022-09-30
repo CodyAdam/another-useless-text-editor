@@ -176,9 +176,10 @@ skinparam classAttributeIconSize 0
 ``` 
 Nous avons choisit comme principales classes de notre projet : **"Editor"**, **"Application"**, **"Command"** et **"Cursor"**. 
 
+- **"Application"** est la classe principale qui contient les différentes commandes et qui permet à l'utilisateur de les exécuter. C'est elle qui fait le lien avec l'interface utilisateur.
+
 - **"Editor"** est la classe qui contient le contenu du buffer, elle seule peut modifier le contenu du buffer.
 
-- **"Application"** est la classe qui contient les différentes commandes et qui permet à l'utilisateur de les exécuter.
 
 - **"Command"** est une classe abstraite qui permet de définir les différentes commandes qui utiliserons les fonctions de "Editor".
 
@@ -204,22 +205,22 @@ group init (app constructor)
     cur -> app: return instance
 end
 
-group onWrite
+group write
     app -> com: new Write(app, "toto")
     com -> app: return instance
     app -> com: execute()
-    com -> edit: editor.addStringBetween(text, cur.getStart(), cur.getEnd())
+    com -> edit: addStringBetween(text, cur.getStart(), cur.getEnd())
     edit -> com: return void
     com -> app: render()
     app -> com: return void
     com -> app: return void
 end
-group onDelete
+group delete
     app -> com: new Delete(app)
     com -> app: return instance
     app -> com: execute()
     alt #Gold if cur.isSelection()
-        com -> edit: editor.deleteBetween(cur.getStart(), cur.getEnd())
+        com -> edit: deleteBetween(cur.getStart(), cur.getEnd())
         edit -> com: return void
     else #LightBlue else
         com -> edit: deletAfter(cur.getStart())
@@ -229,12 +230,12 @@ group onDelete
     app -> com: return void
     com -> app: return void
 end
-group onBackSpace
+group backSpace
     app -> com: new BackSpace(app)
     com -> app: return instance
     app -> com: execute()
     alt #Gold if cur.isSelection()
-        com -> edit: editor.deleteBetween(cur.getStart(), cur.getEnd())
+        com -> edit: deleteBetween(cur.getStart(), cur.getEnd())
         edit -> com: return void
     else #LightBlue else
         com -> edit: deletBefore(cur.getStart())
@@ -244,7 +245,7 @@ group onBackSpace
     app -> com: return void
     com -> app: return void
 end
-group onCopy
+group copy
     app -> com: new Copy(app)
     com -> app: return instance
     app -> com: execute()
@@ -267,7 +268,20 @@ group paste
     com -> app: return void
 end
 
-group selectLeft
+
+group move cursor
+    app -> com: new MoveCursor(app)
+    com -> app: return instance
+    app -> com: execute()
+    com -> cur: setStart(Position)
+    cur -> com: return void
+    com -> cur: setEnd(Position)
+    cur -> com: return void
+    com -> app: return void
+    com -> app: return void
+end
+
+group move start cursor
     app -> com: new MoveStartCursor(app)
     com -> app: return instance
     app -> com: execute()
@@ -277,7 +291,7 @@ group selectLeft
     com -> app: return void
 end
 
-group selectRight
+group move end cursor
     app -> com: new MoveEndCursor(app)
     com -> app: return instance
     app -> com: execute()
@@ -295,19 +309,21 @@ Nous avons défini 8 interactions principales entre les classes au sein de notre
 
 - **init** : qui permet d'initialiser l'application avec un éditeur et un curseur.
 
-- **onWrite** : qui défini la procédure permettant d'écrire du texte dans le buffer.
+- **write** : qui défini la procédure permettant d'écrire du texte dans le buffer.
 
-- **onDelete** : qui défini la procédure permettant de supprimer du texte après le curseur dans le buffer.
+- **delete** : qui défini la procédure permettant de supprimer du texte après le curseur dans le buffer.
 
-- **onBackSpace** : qui défini la procédure permettant de supprimer du texte avant le curseur dans le buffer.
+- **backSpace** : qui défini la procédure permettant de supprimer du texte avant le curseur dans le buffer.
 
-- **onCopy** : qui défini la procédure permettant de copier du texte en le stoquant dans le clipboard.
+- **copy** : qui défini la procédure permettant de copier du texte en le stoquant dans le clipboard.
 
-- **onPaste** : qui défini la procédure permettant de coller du texte du clipboard dans le buffer.
+- **paste** : qui défini la procédure permettant de coller du texte du clipboard dans le buffer.
 
-- **selectLeft** : qui défini la procédure permettant de déplacer le curseur de gauche.
+- **move cusror** : qui défini la procédure permettant de déplacer les deux curseur à la même position.
 
-- **selectRight** : qui défini la procédure permettant de déplacer le curseur de droite.
+- **move start cursor** : qui défini la procédure permettant de déplacer le curseur de gauche.
+
+- **move end cursor** : qui défini la procédure permettant de déplacer le curseur de droite.
 
 ## III.3 Diagramme d'état
 
@@ -318,11 +334,11 @@ Sachant désormais comment est contruit et fonctionne notre éditeur de texte, n
     state NoSelection
 
     state isSelection <<choice>>
-    [*] ---> NoSelection
+    [*] -right-> NoSelection
 
+    isSelection ---> NoSelection: [distance start end cursor = 0]
     Selection --> isSelection: move cursor
     NoSelection --> isSelection: move cursor
-    NoSelection <-- isSelection : [distance start end cursor = 0]
     isSelection --> Selection: [else]
 
 
@@ -338,9 +354,17 @@ Nous avons défini deux états principaux : **"Selection"** et **"NoSelection"**
 
 ## III.4 Implémentation de l'éditeur
 
-Nous avons décider d'implémenter notre éditeur de texte en Web, principalement en TypeScript. Nous avons ainsi programmé notre éditeur en utilisant l'architecture de notre diagramme de classes. Fabriquant ainsi les fichiers **"app.ts"**, **"commands.ts"**, **"cursor.ts"**, **"editor.ts"**, **"index.ts"** et **"position.ts"**. Le fichier **"commands.ts"** contient l'ensemble des classes des commandes pour plus de lisibilité.
+Nous avons décider d'implémenter notre éditeur de texte en languages Web, principalement en TypeScript. Nous avons ainsi programmé notre éditeur en utilisant l'architecture de notre diagramme de classes. Fabriquant ainsi les fichiers suivants : 
+- **app.ts** : la classe principale de notre application qui permet de gérer les commandes ainsi que les interactions avec l'utilisateur
+- **commands.ts** : implémentation de toutes les commandes
+- **cursor.ts** : implémentation de la classe cursor
+- **editor.ts** : implémentation de la classe editor
+- **position.ts** : implémentation de la classe position
+- **index.ts** : fichier annexe qui permet d'exporter les classes (n'est pas important pour la compréhension du projet)
+  
+Nous fabriquons ensuite l'interface graphique de notre éditeur de texte en utilisant le framework graphique **"Three.js"**. Celui-ci va nous permettre d'avoir d'avoir une interface constitué de modèles 3D, ce qui rend le projet  ludique. Nous n'allons bien évidement pas réutiliser les fonctions de bases du navigateur web pour la selection, le copier/coller, etc.
 
-Nous fabriquons ensuite l'interface graphique de notre éditeur de texte en utilisant le framework **"Three.js"**. Ce va nous permettre d'avoir un éditeur en 3D ludique qui ne pourra pas réutiliser les fonctions de bases du navigateur WEB pour la selection, le copier/coller, etc.
+Vous retrouverez les instructions pour lancer le projet dans le fichier **README.md** du projet.
 
 # IV. Diagrammes UML et conception de la V2
 
@@ -388,6 +412,8 @@ Ayant ainsi la nouvelle structure et le fonctionnent final de notre éditeur, no
 @startuml
     state Selection
     state NoSelection
+    state IsRecording
+    state Replaying
 @enduml
 ```
 Nous avons défini les mêmes états que pour la version 1 de notre éditeur de texte. Nous avons toutefois des changements d'états supplémentaire pour la version 2...
