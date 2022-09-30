@@ -56,6 +56,9 @@ class Main {
 
   public lastText: string;
 
+  public animateCursor: Boolean;
+  public animateCamera: Boolean;
+
   constructor() {
     this.init();
   }
@@ -70,6 +73,7 @@ class Main {
     const aspect = window.innerWidth / window.innerHeight;
     this.camera = new PerspectiveCamera(50, aspect, 1, 100000);
     this.camera.position.z = 1000;
+    this.animateCamera = true;
 
     // Init renderer.
     this.renderer = new WebGLRenderer({
@@ -99,6 +103,7 @@ class Main {
 
     this.cursor = this.createCursorMesh();
     this.cursor.position.set(0, 30, 10);
+    this.animateCursor = true;
     this.scene.add(this.cursor);
 
     this.app = new Application();
@@ -126,7 +131,12 @@ class Main {
     cursorFold.add(this.cursor.scale, 'x', 1, 100, .1).name('scale x').onChange(() => this.render());
     cursorFold.add(this.cursor.scale, 'y', .1, 5, .1).name('scale y').onChange(() => this.render());
     cursorFold.add(this.cursor.scale, 'z', 1, 5, .1).name('scale z').onChange(() => this.render());
+    cursorFold.add(this, "animateCursor").name('animate').onChange(() => this.render());
     cursorFold.open();
+    const cameraFold = this.gui.addFolder("Camera");
+    cameraFold.add({ reset: () => { this.camera.position.z = 1000; } }, "reset")
+    cameraFold.add(this, "animateCamera").name('animate').onChange(() => this.render());
+
   }
 
   private onKeyPress(e: KeyboardEvent) {
@@ -169,10 +179,11 @@ class Main {
     }
 
     //Update the cursor
-    const cursor = this.app.getCursor();
-    const cursorPos = cursor.getStart();
-    this.cursor.position.setX(cursorPos.getCol() * W + CUR_X_OFFSET);
-    this.cursor.position.setY(-cursorPos.getLine() * H + CUR_Y_OFFSET);
+    if (!this.animateCursor) {
+      const cursorPos = this.app.getCursor().getStart();
+      this.cursor.position.setX(cursorPos.getCol() * W + CUR_X_OFFSET);
+      this.cursor.position.setY(-cursorPos.getLine() * H + CUR_Y_OFFSET);
+    }
 
     const textCenter = this.text.geometry.boundingSphere?.center;
     if (textCenter) {
@@ -186,12 +197,20 @@ class Main {
 
   /** Animates the scene */
   private animate() {
+    if (!this.animateCamera || !this.animateCursor)
+      return;
     this.stats.begin();
 
-    this.camera.position.setX(lerp(this.camera.position.x, this.cursor.position.x, 0.01))
-    this.camera.position.setY(lerp(this.camera.position.y, this.cursor.position.y, 0.01))
-
-    this.controls.update();
+    if (this.animateCamera) {
+      this.camera.position.setX(lerp(this.camera.position.x, this.cursor.position.x, 0.01))
+      this.camera.position.setY(lerp(this.camera.position.y, this.cursor.position.y, 0.01))
+      this.controls.update();
+    }
+    if (this.animateCursor) {
+      const cursorPos = this.app.getCursor().getStart();
+      this.cursor.position.setX(lerp(this.cursor.position.x, cursorPos.getCol() * W + CUR_X_OFFSET, 0.2))
+      this.cursor.position.setY(lerp(this.cursor.position.y, -cursorPos.getLine() * H + CUR_Y_OFFSET, 0.2))
+    }
     this.renderer.render(this.scene, this.camera);
 
     this.stats.end();
@@ -209,7 +228,7 @@ class Main {
 
   private createCursorMesh() {
     const material = new MeshNormalMaterial();
-    material.opacity= 0.8;
+    material.opacity = 0.8;
     material.transparent = true;
     const mesh = new Mesh(new BoxGeometry(10, 135, 100), material);
     return mesh;
