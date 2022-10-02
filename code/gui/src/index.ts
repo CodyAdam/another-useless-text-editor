@@ -236,7 +236,7 @@ class Main {
           this.app.onCut();
         else if (e.key === "a") {
           this.app.onMoveStartCursor(new Position(0, 0));
-          this.app.onMoveEndCursor(new Position(99999, 99999))
+          this.app.onMoveEndCursor(new Position(99999, 99999));
         }
       }
       else

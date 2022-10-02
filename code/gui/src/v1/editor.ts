@@ -97,16 +97,10 @@ export class Editor {
   }
 
   clampedPosition(pos: Position): Position {
-    const x = pos.getCol();
-    const y = pos.getLine();
+    let y = Math.max(Math.min(pos.getLine(), this.content.length - 1), 0);
     const line = this.content[y];
-    if (x < 0) {
-      return new Position(y, 0);
-    }
-    if (x > line.length) {
-      return new Position(y, line.length);
-    }
-    return pos;
+    let x = Math.max(Math.min(pos.getCol(), line.length), 0);
+    return new Position(y, x);
   }
 }
 
