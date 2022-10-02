@@ -150,10 +150,10 @@ class Main {
     const cameraFold = this.gui.addFolder("Camera");
     cameraFold.add({
       reset: () => {
-        this.camera.position.x = this.cursorStart.position.x;
-        this.camera.position.y = this.cursorStart.position.y;
+        this.camera.position.x = this.cursorEnd.position.x;
+        this.camera.position.y = this.cursorEnd.position.y;
         this.camera.position.z = 1000;
-        this.camera.lookAt(this.cursorStart.position);
+        this.camera.lookAt(this.cursorEnd.position);
         this.render();
       }
     }, "reset").name('reset position').onChange(() => this.render())
@@ -264,10 +264,12 @@ class Main {
 
     }
 
-    const textCenter = this.text.geometry.boundingSphere?.center;
-    if (textCenter) {
-      this.controls.target.setX(textCenter.x);
-      this.controls.target.setY(textCenter.y);
+    if (this.animateCamera) {
+      const textCenter = this.text.geometry.boundingSphere?.center;
+      if (textCenter) {
+        this.controls.target.setX(textCenter.x);
+        this.controls.target.setY(textCenter.y);
+      }
     }
     this.stats.begin();
     this.renderer.render(this.scene, this.camera);
@@ -281,8 +283,8 @@ class Main {
     this.stats.begin();
 
     if (this.animateCamera) {
-      this.camera.position.setX(lerp(this.camera.position.x, this.cursorStart.position.x, 0.01))
-      this.camera.position.setY(lerp(this.camera.position.y, this.cursorStart.position.y, 0.01))
+      this.camera.position.setX(lerp(this.camera.position.x, this.cursorEnd.position.x, 0.01))
+      this.camera.position.setY(lerp(this.camera.position.y, this.cursorEnd.position.y, 0.01))
       this.controls.update();
     }
     if (this.animateCursor) {
