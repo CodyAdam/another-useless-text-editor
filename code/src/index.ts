@@ -128,12 +128,6 @@ class Main {
     this.scene.add(this.cursorStart);
     this.scene.add(this.cursorEnd)
 
-    this.app = new Application();
-    this.app.addRenderListener(() => this.render());
-    this.app.onWrite("Another useless\ntext editor!");
-    this.app.onMoveStartCursor(new Position(0, 8));
-    this.app.onMoveEndCursor(new Position(0, 15));
-
     this.modifiers = {
       shift: false,
       ctrl: false
@@ -142,13 +136,13 @@ class Main {
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Shift')
         this.modifiers.shift = true;
-      if (e.key === "Control")
+      if (e.key === "Control" || e.key === "Command")
         this.modifiers.ctrl = true;
     })
     window.addEventListener('keyup', (e) => {
       if (e.key === 'Shift')
         this.modifiers.shift = false;
-      if (e.key === "Control")
+      if (e.key === "Control" || e.key === "Command")
         this.modifiers.ctrl = false;
     })
 
@@ -165,6 +159,12 @@ class Main {
     this.scene.add(this.pointLightStart);
     const ambient = new DirectionalLight(0x694c76, 1);
     this.scene.add(ambient);
+
+    this.app = new Application();
+    this.app.addRenderListener(() => this.render());
+    this.app.onWrite("Another useless\ntext editor!");
+    this.app.onMoveStartCursor(new Position(0, 8));
+    this.app.onMoveEndCursor(new Position(0, 15));
 
 
     this.render();
@@ -400,9 +400,9 @@ class Main {
     if (this.animateSelection) {
       this.text.forEach((char, pos) => {
         if (this.isSelected(pos)) {
-          const posOffset =  + 30*Math.sin(char.mesh.position.x/100 + char.mesh.position.y/100 + 5*this.clock.getElapsedTime());
+          const posOffset = + 30 * Math.sin(char.mesh.position.x / 100 + char.mesh.position.y / 100 + 4 * this.clock.getElapsedTime());
           char.mesh.position.setY(-pos.getLine() * H + posOffset);
-          const rotationOffset = 0.1*Math.sin(char.mesh.position.x/100 + 5*this.clock.getElapsedTime());  
+          const rotationOffset = 0.1 * Math.sin(char.mesh.position.x / 100 + 5 * this.clock.getElapsedTime());
           char.mesh.rotation.set(rotationOffset, rotationOffset, rotationOffset);
           const material = new MeshPhongMaterial();
           char.mesh.material = material;
