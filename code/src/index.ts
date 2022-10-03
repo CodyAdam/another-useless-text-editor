@@ -71,7 +71,7 @@ class Main {
   public modifiers: { shift: boolean, ctrl: boolean };
 
   public animateCursor: Boolean;
-  public animateCamera: Boolean;
+  public freeCam: Boolean;
   public animateSelection: Boolean;
 
   public pointLightEnd: PointLight;
@@ -89,8 +89,8 @@ class Main {
     // Init camera.
     const aspect = window.innerWidth / window.innerHeight;
     this.camera = new PerspectiveCamera(50, aspect, 1, 100000);
-    this.camera.position.z = 1000;
-    this.animateCamera = true;
+    this.camera.position.z = 3000;
+    this.freeCam = false;
 
     // Init renderer.
     this.renderer = new WebGLRenderer({
@@ -120,8 +120,8 @@ class Main {
     this.font = new Font(font);
 
     this.cursorStart = this.createCursorMesh();
-    this.cursorStart.position.set(0, 30, 10);
     this.cursorEnd = this.createCursorMesh();
+    this.cursorStart.position.set(0, 30, 10);
     this.cursorEnd.position.set(0, 30, 10);
     this.animateCursor = true;
     this.animateSelection = true;
@@ -162,9 +162,9 @@ class Main {
 
     this.app = new Application();
     this.app.addRenderListener(() => this.render());
-    this.app.onWrite("Another useless\ntext editor!");
-    this.app.onMoveStartCursor(new Position(0, 8));
-    this.app.onMoveEndCursor(new Position(0, 15));
+    this.app.onWrite("Another useless\ntext editor!\n\n\nCommands :\n\n- Arrows: move the cursor\n- Shift + Arrows: select\n- Ctrl + C: copy selection\n- Ctrl + V: paste\n- Ctrl + A: select all\n- Mouse: camera zoom/pan\n- Home/End/PgUp/PgDown: navigation");
+    this.app.onMoveStartCursor(new Position(0, 15));
+    this.app.onMoveEndCursor(new Position(0, 8));
 
 
     this.render();
@@ -190,7 +190,7 @@ class Main {
         this.render();
       }
     }, "reset").name('reset position').onChange(() => this.render())
-    cameraFold.add(this, "animateCamera").name('animate').onChange(() => this.render());
+    cameraFold.add(this, "freeCam").name('free camera').onChange(() => this.render());
     cameraFold.open();
     const selectionFold = this.gui.addFolder("Selection");
     selectionFold.add(this, "animateSelection").name('animate').onChange(() => this.render());
@@ -349,24 +349,6 @@ class Main {
       });
     }
 
-
-    if (this.animateCamera) {
-      const center = new Vector3();
-      const count = this.text.size;
-      if (count > 0) {
-        this.text.forEach((char, pos) => {
-          center.add(char.mesh.position);
-        });
-        center.divideScalar(count);
-        if (center) {
-          this.controls.target.setX(center.x);
-          this.controls.target.setY(center.y);
-        }
-      }
-    }
-
-
-
     this.stats.begin();
     this.renderer.render(this.scene, this.camera);
     this.stats.end();
@@ -374,14 +356,27 @@ class Main {
 
   /** Animates the scene */
   private animate() {
-    if (!this.animateCamera && !this.animateCursor && !this.animateSelection)
+    if (this.freeCam && !this.animateCursor && !this.animateSelection)
       return;
     this.stats.begin();
 
-    if (this.animateCamera) {
+    if (!this.freeCam) {
       this.camera.position.setX(lerp(this.camera.position.x, this.cursorEnd.position.x, 0.01))
       this.camera.position.setY(lerp(this.camera.position.y, this.cursorEnd.position.y, 0.01))
       this.controls.update();
+
+      let max = new Vector3();
+      const zero = new Vector3(0, 0, 0);
+      const count = this.text.size;
+      if (count > 0) {
+        this.text.forEach((char, pos) => {
+          if (char.mesh.position.distanceTo(zero) > max.distanceTo(zero))
+            max = char.mesh.position.clone();
+        });
+        max.divideScalar(2);
+        this.controls.target.setX(lerp(this.controls.target.x, max.x, 0.01));
+        this.controls.target.setY(lerp(this.controls.target.y, max.y, 0.01));
+      }
     }
     if (this.animateCursor) {
       const startCur = this.app.getCursor().getStart();
