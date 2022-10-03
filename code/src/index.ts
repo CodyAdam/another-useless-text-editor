@@ -401,8 +401,7 @@ class Main {
       start = end;
       end = tmp;
     }
-    return (pos.getLine())(pos.getLine() > end.getLine() || pos.getLine() < start.getLine())
-      || (pos.getCol() > start.getCol() && pos.getCol() <=  end.getCol());
+    return (pos.isAfter(start) || pos.isEqual(start)) && (pos.isBefore(end));
   }
 }
 
