@@ -1,13 +1,18 @@
 
-import THREE, {
+import {
   Scene,
   Color,
   Mesh,
   MeshNormalMaterial,
+  MeshMatcapMaterial,
+  MeshLambertMaterial,
   BoxGeometry,
   PerspectiveCamera,
   WebGLRenderer,
   OrthographicCamera,
+  MeshPhongMaterial,
+  AmbientLightProbe,
+  PointLight,
 } from "three";
 import { TextGeometry } from './TextGeometry';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
@@ -24,6 +29,11 @@ const W = 72.25;
 const CUR_X_OFFSET = 0;
 const CUR_Y_OFFSET = 30;
 
+type Char = {
+  text: string,
+  mesh: Mesh,
+  seen: boolean
+}
 
 class Main {
   /** The scene */
@@ -44,7 +54,7 @@ class Main {
   /** The cube mesh */
   public cube: Mesh;
 
-  public text: Mesh;
+  public text: Map<Position, Char>;
 
   public cursorStart: Mesh;
   public cursorEnd: Mesh;
@@ -62,12 +72,11 @@ class Main {
   public animateCursor: Boolean;
   public animateCamera: Boolean;
 
-  constructor() {
-    this.init();
-  }
+  public pointLight: PointLight;
 
-  /** Initialize the viewport */
-  private init() {
+  public cache: Map<string, Mesh>
+
+  constructor() {
     // Init scene. 
     this.scene = new Scene();
     this.scene.background = new Color("#191919");
@@ -101,8 +110,6 @@ class Main {
     this.controls.addEventListener("change", () => this.render());
 
     this.font = new Font(font);
-    this.text = this.createTextMesh();
-    this.scene.add(this.text);
 
     this.cursorStart = this.createCursorMesh();
     this.cursorStart.position.set(0, 30, 10);
@@ -135,9 +142,17 @@ class Main {
 
     this.createGui();
 
+    this.text = new Map();
+    this.cache = new Map();
+
+    this.pointLight = new PointLight(0xff0000, 1, 800);
+    this.scene.add(this.pointLight);
+
+
     this.render();
     console.log(this);
   }
+
 
   private createGui() {
     this.gui = new GUI();
@@ -163,7 +178,7 @@ class Main {
 
 
   private onKeyPress(e: KeyboardEvent) {
-    console.log(e.key);
+    console.log(this.text)
     if (e.key === "Home") {
       const current = this.app.getCursor().getEnd()
       if (this.modifiers.shift) {
@@ -247,10 +262,41 @@ class Main {
   /** Renders the scene */
   private render() {
     //Update the text
-    const content = this.app.getEditor().getContent().join('\n');
-    if (this.lastText !== content) {
-      this.lastText = content;
-      this.text.geometry = this.geometryFromText(content);
+
+    const content = this.app.getEditor().getContent();
+    if (this.lastText !== content.join('\n')) {
+      this.lastText = content.join('\n');
+      this.text.forEach((char, pos) => {
+        char.seen = false;
+      });
+      content.forEach((line, y) => {
+        line.split('').forEach((char, x) => {
+          const pos = new Position(y, x);
+          const charObj = this.text.get(pos);
+          if (charObj) {
+            if (charObj.text !== char) {
+              this.scene.remove(charObj.mesh);
+              const newCharObj = this.getCharMesh(char);
+              this.text.set(pos, { text: char, mesh: newCharObj, seen: true });
+            }
+            charObj.seen = true;
+          }
+          else {
+            const charObj = this.getCharMesh(char).clone();
+            charObj.position.setX(x * W);
+            charObj.position.setY(-y * H);
+            this.text.set(pos, { text: char, mesh: charObj, seen: true });
+            this.scene.add(charObj);
+          }
+        });
+      });
+
+      this.text.forEach((char, pos) => {
+        if (!char.seen) {
+          this.scene.remove(char.mesh);
+          this.text.delete(pos);
+        }
+      });
     }
 
     //Update the cursor
@@ -261,16 +307,23 @@ class Main {
       this.cursorStart.position.setY(-startCur.getLine() * H + CUR_Y_OFFSET);
       this.cursorEnd.position.setX(endCur.getCol() * W + CUR_X_OFFSET);
       this.cursorEnd.position.setY(-endCur.getLine() * H + CUR_Y_OFFSET);
-
     }
 
-    if (this.animateCamera) {
-      const textCenter = this.text.geometry.boundingSphere?.center;
-      if (textCenter) {
-        this.controls.target.setX(textCenter.x);
-        this.controls.target.setY(textCenter.y);
-      }
-    }
+    // if (this.animateCamera) {
+    //   const textCenter = this.text.geometry.boundingSphere?.center;
+    //   if (textCenter) {
+    //     this.controls.target.setX(textCenter.x);
+    //     this.controls.target.setY(textCenter.y);
+    //   }
+    // }
+
+    this.text.forEach((char, pos) => {
+      if (this.isSelected(pos))
+        char.mesh.material = new MeshPhongMaterial();
+      else
+        char.mesh.material = new MeshNormalMaterial();
+    });
+
     this.stats.begin();
     this.renderer.render(this.scene, this.camera);
     this.stats.end();
@@ -318,9 +371,11 @@ class Main {
     return mesh;
   }
 
-  private createTextMesh(text: string = "Default") {
+  private getCharMesh(char: string): Mesh {
+    if (this.cache.has(char)) return this.cache.get(char)!;
     const material = new MeshNormalMaterial();
-    const mesh = new Mesh(this.geometryFromText(text), material);
+    const mesh = new Mesh(this.geometryFromText(char), material);
+    this.cache.set(char, mesh);
     return mesh;
   }
 
@@ -331,15 +386,24 @@ class Main {
       height: 20,
       curveSegments: 10,
       bevelEnabled: true,
-      bevelThickness: 3,
+      bevelThickness: 8,
       bevelSize: 3,
       bevelOffset: 1,
       bevelSegments: 5,
     });
   }
+
+  private isSelected(pos: Position): boolean {
+    let start = this.app.getCursor().getStart();
+    let end = this.app.getCursor().getEnd();
+    if (start.getLine() > end.getLine() || (start.getLine() === end.getLine() && start.getCol() > end.getCol())) {
+      const tmp = start;
+      start = end;
+      end = tmp;
+    }
+    return (pos.getLine())(pos.getLine() > end.getLine() || pos.getLine() < start.getLine())
+      || (pos.getCol() > start.getCol() && pos.getCol() <=  end.getCol());
+  }
 }
-
-
-
 
 new Main();
