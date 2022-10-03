@@ -13,6 +13,10 @@ import {
   MeshPhongMaterial,
   AmbientLightProbe,
   PointLight,
+  Vector3,
+  Clock,
+  AmbientLight,
+  DirectionalLight,
 } from "three";
 import { TextGeometry } from './TextGeometry';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
@@ -51,9 +55,6 @@ class Main {
   /** The stats */
   public stats: Stats;
 
-  /** The cube mesh */
-  public cube: Mesh;
-
   public text: Map<Position, Char>;
 
   public cursorStart: Mesh;
@@ -71,15 +72,19 @@ class Main {
 
   public animateCursor: Boolean;
   public animateCamera: Boolean;
+  public animateSelection: Boolean;
 
-  public pointLight: PointLight;
+  public pointLightEnd: PointLight;
+  public pointLightStart: PointLight;
 
   public cache: Map<string, Mesh>
+  public clock: Clock;
 
   constructor() {
     // Init scene. 
     this.scene = new Scene();
     this.scene.background = new Color("#191919");
+
 
     // Init camera.
     const aspect = window.innerWidth / window.innerHeight;
@@ -109,6 +114,9 @@ class Main {
     this.controls.update();
     this.controls.addEventListener("change", () => this.render());
 
+
+    this.clock = new Clock();
+    this.clock.start();
     this.font = new Font(font);
 
     this.cursorStart = this.createCursorMesh();
@@ -116,6 +124,7 @@ class Main {
     this.cursorEnd = this.createCursorMesh();
     this.cursorEnd.position.set(0, 30, 10);
     this.animateCursor = true;
+    this.animateSelection = true;
     this.scene.add(this.cursorStart);
     this.scene.add(this.cursorEnd)
 
@@ -145,8 +154,14 @@ class Main {
     this.text = new Map();
     this.cache = new Map();
 
-    this.pointLight = new PointLight(0xff0000, 1, 800);
-    this.scene.add(this.pointLight);
+    this.pointLightStart = new PointLight(0xad00ff, 1, 800);
+    this.pointLightEnd = new PointLight(0xff2e2e, 1, 800);
+    this.pointLightEnd.position.set(0, 0, 100);
+    this.pointLightStart.position.set(0, 0, 100);
+    this.scene.add(this.pointLightEnd);
+    this.scene.add(this.pointLightStart);
+    const ambient = new DirectionalLight(0x694c76, 1);
+    this.scene.add(ambient);
 
 
     this.render();
@@ -174,11 +189,13 @@ class Main {
     }, "reset").name('reset position').onChange(() => this.render())
     cameraFold.add(this, "animateCamera").name('animate').onChange(() => this.render());
     cameraFold.open();
+    const selectionFold = this.gui.addFolder("Selection");
+    selectionFold.add(this, "animateSelection").name('animate').onChange(() => this.render());
+    selectionFold.open();
   }
 
 
   private onKeyPress(e: KeyboardEvent) {
-    console.log(this.text)
     if (e.key === "Home") {
       const current = this.app.getCursor().getEnd()
       if (this.modifiers.shift) {
@@ -307,22 +324,45 @@ class Main {
       this.cursorStart.position.setY(-startCur.getLine() * H + CUR_Y_OFFSET);
       this.cursorEnd.position.setX(endCur.getCol() * W + CUR_X_OFFSET);
       this.cursorEnd.position.setY(-endCur.getLine() * H + CUR_Y_OFFSET);
+      // update light position on cursor
+      this.pointLightEnd.position.setX(this.cursorEnd.position.x)
+      this.pointLightEnd.position.setY(this.cursorEnd.position.y)
+      this.pointLightStart.position.setX(this.cursorStart.position.x)
+      this.pointLightStart.position.setY(this.cursorStart.position.y)
     }
 
-    // if (this.animateCamera) {
-    //   const textCenter = this.text.geometry.boundingSphere?.center;
-    //   if (textCenter) {
-    //     this.controls.target.setX(textCenter.x);
-    //     this.controls.target.setY(textCenter.y);
-    //   }
-    // }
 
-    this.text.forEach((char, pos) => {
-      if (this.isSelected(pos))
-        char.mesh.material = new MeshPhongMaterial();
-      else
-        char.mesh.material = new MeshNormalMaterial();
-    });
+    if (!this.animateSelection) {
+      this.text.forEach((char, pos) => {
+        if (this.isSelected(pos)) {
+          char.mesh.rotation.set(.2, 0.1, 0.2);
+          const material = new MeshPhongMaterial();
+          char.mesh.material = material;
+        }
+        else {
+          char.mesh.rotation.set(0, 0, 0);
+          char.mesh.material = new MeshNormalMaterial();
+        }
+      });
+    }
+
+
+    if (this.animateCamera) {
+      const center = new Vector3();
+      const count = this.text.size;
+      if (count > 0) {
+        this.text.forEach((char, pos) => {
+          center.add(char.mesh.position);
+        });
+        center.divideScalar(count);
+        if (center) {
+          this.controls.target.setX(center.x);
+          this.controls.target.setY(center.y);
+        }
+      }
+    }
+
+
 
     this.stats.begin();
     this.renderer.render(this.scene, this.camera);
@@ -331,7 +371,7 @@ class Main {
 
   /** Animates the scene */
   private animate() {
-    if (!this.animateCamera && !this.animateCursor)
+    if (!this.animateCamera && !this.animateCursor && !this.animateSelection)
       return;
     this.stats.begin();
 
@@ -347,9 +387,32 @@ class Main {
       this.cursorStart.position.setY(lerp(this.cursorStart.position.y, -startCur.getLine() * H + CUR_Y_OFFSET, 0.2))
       this.cursorEnd.position.setX(lerp(this.cursorEnd.position.x, endCur.getCol() * W + CUR_X_OFFSET, 0.2))
       this.cursorEnd.position.setY(lerp(this.cursorEnd.position.y, -endCur.getLine() * H + CUR_Y_OFFSET, 0.2))
+      // update light position on cursor
+      this.pointLightEnd.position.setX(this.cursorEnd.position.x)
+      this.pointLightEnd.position.setY(this.cursorEnd.position.y)
+      this.pointLightStart.position.setX(this.cursorStart.position.x)
+      this.pointLightStart.position.setY(this.cursorStart.position.y)
     }
-    this.renderer.render(this.scene, this.camera);
 
+    if (this.animateSelection) {
+      this.text.forEach((char, pos) => {
+        if (this.isSelected(pos)) {
+          const posOffset =  + 30*Math.sin(char.mesh.position.x/100 + char.mesh.position.y/100 + 5*this.clock.getElapsedTime());
+          char.mesh.position.setY(-pos.getLine() * H + posOffset);
+          const rotationOffset = 0.1*Math.sin(char.mesh.position.x/100 + 5*this.clock.getElapsedTime());  
+          char.mesh.rotation.set(rotationOffset, rotationOffset, rotationOffset);
+          const material = new MeshPhongMaterial();
+          char.mesh.material = material;
+        }
+        else {
+          char.mesh.position.setY(-pos.getLine() * H);
+          char.mesh.rotation.set(0, 0, 0);
+          char.mesh.material = new MeshNormalMaterial();
+        }
+      });
+    }
+
+    this.renderer.render(this.scene, this.camera);
     this.stats.end();
   }
 
