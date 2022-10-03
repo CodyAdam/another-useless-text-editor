@@ -403,7 +403,7 @@ Nous avons défini 4 interactions supplémentaires entre les classes au sein de 
 
 ## IV.3 Diagramme d'état
 
-Ayant ainsi la nouvelle structure et le fonctionnent final de notre éditeur, nous pouvons définir quels sont les états définitif de notre application et quels action engendre des changements d'états. Nous avons donc fini par définir le diagramme d'état suivant :
+Ayant ainsi la nouvelle structure et le fonctionnent final de notre éditeur, nous pouvons définir quels sont les états définitif de notre application et quels actions engendrent des changements d'états. Nous avons donc fini par définir le diagramme d'état suivant :
 
 ```plantuml
 @startuml
