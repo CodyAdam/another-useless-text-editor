@@ -18,12 +18,11 @@ export class Application {
   private cursor: Cursor;
   private listeners: (() => void)[] = [];
   constructor() {
-    console.log("\nLoading application... vclamp");
+    console.log("\nLoading application...");
     this.clipboard = "";
     this.cursor = new Cursor();
     this.editor = new Editor(this.cursor);
     this.render();
-    this.onWrite("Hello World!")
     console.log("Application successfully loaded!\n\n");
   }
 

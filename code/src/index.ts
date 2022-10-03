@@ -130,6 +130,9 @@ class Main {
 
     this.app = new Application();
     this.app.addRenderListener(() => this.render());
+    this.app.onWrite("Another useless\ntext editor!");
+    this.app.onMoveStartCursor(new Position(0, 8));
+    this.app.onMoveEndCursor(new Position(0, 15));
 
     this.modifiers = {
       shift: false,
