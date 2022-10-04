@@ -151,13 +151,14 @@ class Main {
     this.text = new Map();
     this.cache = new Map();
 
-    this.pointLightStart = new PointLight(0xad00ff, 1, 800);
-    this.pointLightEnd = new PointLight(0xff2e2e, 1, 800);
+    this.pointLightStart = new PointLight(0xff6efa, 2, 800);
+    this.pointLightEnd = new PointLight(0xff1717, 2, 800);
     this.pointLightEnd.position.set(0, 0, 100);
     this.pointLightStart.position.set(0, 0, 100);
     this.scene.add(this.pointLightEnd);
     this.scene.add(this.pointLightStart);
-    const ambient = new DirectionalLight(0x694c76, 1);
+    const ambient = new DirectionalLight(0xf9ff47, 1.4);
+    ambient.position.set(0, 1, 1);
     this.scene.add(ambient);
 
     this.app = new Application();
@@ -395,7 +396,7 @@ class Main {
     if (this.animateSelection) {
       this.text.forEach((char, pos) => {
         if (this.isSelected(pos)) {
-          const posOffset = + 30 * Math.sin(char.mesh.position.x / 100 + char.mesh.position.y / 100 + 4 * this.clock.getElapsedTime());
+          const posOffset = + 10 * Math.sin(char.mesh.position.x / 100 + char.mesh.position.y / 100 + 4 * this.clock.getElapsedTime());
           char.mesh.position.setY(-pos.getLine() * H + posOffset);
           const rotationOffset = 0.1 * Math.sin(char.mesh.position.x / 100 + 5 * this.clock.getElapsedTime());
           char.mesh.rotation.set(rotationOffset, rotationOffset, rotationOffset);
