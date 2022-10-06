@@ -3,5 +3,5 @@
 @tailwind utilities;
 
 .key {
-  @apply bg-gray-800 px-2 py-1 border rounded-md font-mono text-sm text-gray-300 font-semibold border-gray-500  border-b-2 mx-1;
+  @apply bg-zinc-800 px-2 py-1 border rounded-lg font-mono text-sm text-gray-300 font-semibold border-zinc-600  border-b-4;
 }

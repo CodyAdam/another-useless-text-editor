@@ -597,6 +597,10 @@ video {
   left: 1.25rem;
 }
 
+.bottom-7 {
+  bottom: 1.75rem;
+}
+
 .mx-1 {
   margin-left: 0.25rem;
   margin-right: 0.25rem;
@@ -618,8 +622,26 @@ video {
   gap: 0.75rem;
 }
 
+.border-b {
+  border-bottom-width: 1px;
+}
+
+.border-gray-500 {
+  --tw-border-opacity: 1;
+  border-color: rgb(107 114 128 / var(--tw-border-opacity));
+}
+
+.pb-2 {
+  padding-bottom: 0.5rem;
+}
+
 .text-lg {
   font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.text-xl {
+  font-size: 1.25rem;
   line-height: 1.75rem;
 }
 
@@ -648,15 +670,13 @@ video {
 }
 
 .key {
-  margin-left: 0.25rem;
-  margin-right: 0.25rem;
-  border-radius: 0.375rem;
+  border-radius: 0.5rem;
   border-width: 1px;
-  border-bottom-width: 2px;
+  border-bottom-width: 4px;
   --tw-border-opacity: 1;
-  border-color: rgb(107 114 128 / var(--tw-border-opacity));
+  border-color: rgb(82 82 91 / var(--tw-border-opacity));
   --tw-bg-opacity: 1;
-  background-color: rgb(31 41 55 / var(--tw-bg-opacity));
+  background-color: rgb(39 39 42 / var(--tw-bg-opacity));
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   padding-top: 0.25rem;
@@ -673,4 +693,20 @@ video {
   -webkit-user-select: none;
      -moz-user-select: none;
           user-select: none;
+}
+
+.\[\&\>p\]\:flex>p {
+  display: flex;
+}
+
+.\[\&\>p\]\:items-center>p {
+  align-items: center;
+}
+
+.\[\&\>p\]\:gap-2>p {
+  gap: 0.5rem;
+}
+
+.\[\&\>p\]\:gap-4>p {
+  gap: 1rem;
 }

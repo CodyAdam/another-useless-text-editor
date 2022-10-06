@@ -91,7 +91,7 @@ class Main {
     // Init camera.
     const aspect = window.innerWidth / window.innerHeight;
     this.camera = new PerspectiveCamera(50, aspect, 1, 100000);
-    this.camera.position.z = 3000;
+    this.camera.position.z = 1000;
     this.autoMove = true;
 
     // Init renderer.
@@ -182,8 +182,10 @@ class Main {
     this.pointLightStart.position.set(0, 0, 100);
     this.scene.add(this.pointLightEnd);
     this.scene.add(this.pointLightStart);
-    const ambient = new DirectionalLight(0xf9ff47, 1.2);
-    ambient.position.set(0, 1, 1);
+    const directionnal = new DirectionalLight(0xf9ff47, 1.2);
+    directionnal.position.set(0, 1, 1);
+    this.scene.add(directionnal);
+    const ambient = new AmbientLight(0xffffff, 0.12);
     this.scene.add(ambient);
 
     this.app = new Application();
