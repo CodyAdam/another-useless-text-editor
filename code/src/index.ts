@@ -381,11 +381,11 @@ class Main {
 
   /** Animates the scene */
   private animate() {
-    if (this.autoMove && !this.animateCursor && !this.animateSelection)
+    if (!this.autoMove && !this.animateCursor && !this.animateSelection)
       return;
     this.stats.begin();
 
-    if (!this.autoMove && !this.mouseButtons.left && !this.mouseButtons.right && !this.mouseButtons.middle) {
+    if (this.autoMove && !this.mouseButtons.left && !this.mouseButtons.right && !this.mouseButtons.middle) {
       this.camera.position.setX(lerp(this.camera.position.x, this.cursorEnd.position.x, 0.01))
       this.camera.position.setY(lerp(this.camera.position.y, this.cursorEnd.position.y, 0.01))
       this.controls.update();
