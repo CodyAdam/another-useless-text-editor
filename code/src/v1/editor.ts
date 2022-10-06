@@ -29,22 +29,32 @@ export class Editor {
     this.cur.setEnd(start);
   }
   deleteBefore(position: Position): void {
+    // delete the char before the cursor
     const x = position.getCol();
     const y = position.getLine();
     const line = this.content[y];
-    this.content[y] = getBefore(line, x - 1) + getAfter(line, x);
     if (x === 0 && y > 0) {
       this.cur.setStart(this.getEndLinePos(y - 1));
       this.cur.setEnd(this.getEndLinePos(y - 1));
+      this.content[y - 1] += line;
+      this.content.splice(y, 1);
     } else if (x > 0) {
+      this.content[y] = getBefore(line, x - 1) + getAfter(line, x);
       this.cur.setStart(new Position(y, x - 1));
       this.cur.setEnd(new Position(y, x - 1));
     }
   }
   deleteAfter(position: Position): void {
-    const line = this.content[position.getLine()];
+    // delete the char after the cusror
     const x = position.getCol();
-    this.content[position.getLine()] = getBefore(line, x) + getAfter(line, x + 1);
+    const y = position.getLine();
+    const line = this.content[position.getLine()];
+    if (x === line.length && y < this.content.length - 1) {
+      this.content[y] += this.content[y + 1]
+      this.content.splice(y + 1, 1);
+    } else if (x < line.length) {
+      this.content[y] = getBefore(line, x) + getAfter(line, x + 1);
+    }
   }
   getBetween(start: Position, end: Position): string {
     if (start.getLine() > end.getLine() || (start.getLine() === end.getLine() && start.getCol() > end.getCol())) {
