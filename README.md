@@ -18,7 +18,7 @@ Comme pour le TP1, nous cherchons à nous approprier le sujet en faisant un cahi
 
 ### V2
 
-- D'enregistrer/rejouer les actions de l'utilisateur (e.g., script) 
+- D'enregistrer/rejouer les actions de l'utilisateur (e.g., script)
 - De réaliser le défaire/refaire, avec une capacité quelconque dans le défaire 
 (autrement dit on peut revenir au début)
 

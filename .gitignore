@@ -1,5 +1,7 @@
 **/.vscode
 
+**/tailwind.config.js
+
 # Logs
 **/logs
 **/*.log

@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": "parcel index.html --open",
-    "start": "parcel index.html --open",
-    "build": "parcel build index.html"
+    "dev": "parcel src/index.html --open",
+    "start": "parcel src/index.html --open",
+    "build": "parcel build src/index.html"
   },
   "dependencies": {
     "parcel": "^2.7.0",

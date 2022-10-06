@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>useless.txt</title>
+    <meta
+      name="description"
+      content="Another useless text editor but it's in 3D"
+    />
+    <meta charset="UTF-8" />
+    <style>
+      html,
+      body,
+      #root {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+      }
+    </style>
+    <link rel="stylesheet" href="styleCompiled.css">
+  </head>
+  <body>
+    <!-- \n\n\nCommands :\n\n- Arrows: move the cursor\n- Shift + Arrows: select\n- Ctrl + X: cut selection\n- Ctrl + C: copy selection\n- Ctrl + V: paste\n- Ctrl + A: select all\n- Mouse: camera zoom/pan\n- Home/End/PgUp/PgDown: navigation -->
+    <script type="module" src="index.ts"></script>
+    <div class="absolute bottom-5 left-5 flex flex-col gap-3 text-white [&>*]:select-none">
+      <h1 class="text-lg font-semibold mx-1">Controls</h1>
+      <!-- ←↑→↓ -->
+      <p><span class="key">←</span> Move cursor left</p>
+      <p><span class="key">→</span> Move cursor right</p>
+      <p><span class="key">↑</span> Move cursor up</p>
+      <p><span class="key">↓</span> Move cursor down</p>
+      <p><span class="key">shift</span> + <span class="key">←</span> Move selection left</p>
+      <p><span class="key">shift</span> + <span class="key">→</span> Move selection right</p>
+      <p><span class="key">shift</span> + <span class="key">↑</span> Move selection up</p>
+      <p><span class="key">shift</span> + <span class="key">↓</span> Move selection down</p>
+      <p><span class="key">ctrl</span> + <span class="key">X</span> Cut selection</p>
+      <p><span class="key">ctrl</span> + <span class="key">C</span> Copy selection</p>
+      <p><span class="key">ctrl</span> + <span class="key">V</span> Paste</p>
+      <p><span class="key">ctrl</span> + <span class="key">A</span> Select all</p>
+      <p><span class="key">mouse wheel</span> Zoom</p>
+      <p><span class="key">left click</span> Rotate</p>
+      <p><span class="key">right click</span> Pan</p>
+      <p><span class="key">home</span> Go to line start</p>
+      <p><span class="key">end</span> Go to line end</p>
+      <p><span class="key">page up</span> Go to file start</p>
+      <p><span class="key">page down</span> Go to file end</p>
+
+
+      
+    </div>
+  </body>
+</html>
