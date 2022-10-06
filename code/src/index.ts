@@ -17,6 +17,7 @@ import {
   Clock,
   AmbientLight,
   DirectionalLight,
+  MOUSE,
 } from "three";
 import { TextGeometry } from './TextGeometry';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
@@ -69,9 +70,10 @@ class Main {
   public lastText: string;
 
   public modifiers: { shift: boolean, ctrl: boolean };
+  public mouseButtons : { left: boolean, right: boolean, middle: boolean };
 
   public animateCursor: Boolean;
-  public freeCam: Boolean;
+  public autoMove: Boolean;
   public animateSelection: Boolean;
 
   public pointLightEnd: PointLight;
@@ -90,7 +92,7 @@ class Main {
     const aspect = window.innerWidth / window.innerHeight;
     this.camera = new PerspectiveCamera(50, aspect, 1, 100000);
     this.camera.position.z = 3000;
-    this.freeCam = false;
+    this.autoMove = true;
 
     // Init renderer.
     this.renderer = new WebGLRenderer({
@@ -146,18 +148,44 @@ class Main {
         this.modifiers.ctrl = false;
     })
 
+    this.mouseButtons = {
+      left: false,
+      right: false,
+      middle: false
+    }
+    window.addEventListener('mousedown', (e) => {
+      if (e.button === MOUSE.LEFT)
+        this.mouseButtons.left = true;
+      if (e.button === MOUSE.RIGHT)
+        this.mouseButtons.right = true;
+      if (e.button === MOUSE.MIDDLE)
+        this.mouseButtons.middle = true;
+    })
+
+    window.addEventListener('mouseup', (e) => {
+      if (e.button === MOUSE.LEFT)
+        this.mouseButtons.left = false;
+      if (e.button === MOUSE.RIGHT)
+        this.mouseButtons.right = false;
+      if (e.button === MOUSE.MIDDLE)
+        this.mouseButtons.middle = false;
+    })
+
+
+
+
     this.createGui();
 
     this.text = new Map();
     this.cache = new Map();
 
-    this.pointLightStart = new PointLight(0xff6efa, 2, 800);
-    this.pointLightEnd = new PointLight(0xff1717, 2, 800);
+    this.pointLightStart = new PointLight(0xff6efa, 3, 2000);
+    this.pointLightEnd = new PointLight(0xff1717, 3, 2000);
     this.pointLightEnd.position.set(0, 0, 100);
     this.pointLightStart.position.set(0, 0, 100);
     this.scene.add(this.pointLightEnd);
     this.scene.add(this.pointLightStart);
-    const ambient = new DirectionalLight(0xf9ff47, 1.4);
+    const ambient = new DirectionalLight(0xf9ff47, 1.2);
     ambient.position.set(0, 1, 1);
     this.scene.add(ambient);
 
@@ -191,7 +219,7 @@ class Main {
         this.render();
       }
     }, "reset").name('reset position').onChange(() => this.render())
-    cameraFold.add(this, "freeCam").name('free camera').onChange(() => this.render());
+    cameraFold.add(this, "autoMove").name('automatic').onChange(() => this.render());
     cameraFold.open();
     const selectionFold = this.gui.addFolder("Selection");
     selectionFold.add(this, "animateSelection").name('animate').onChange(() => this.render());
@@ -357,11 +385,11 @@ class Main {
 
   /** Animates the scene */
   private animate() {
-    if (this.freeCam && !this.animateCursor && !this.animateSelection)
+    if (this.autoMove && !this.animateCursor && !this.animateSelection)
       return;
     this.stats.begin();
 
-    if (!this.freeCam) {
+    if (!this.autoMove && !this.mouseButtons.left && !this.mouseButtons.right && !this.mouseButtons.middle) {
       this.camera.position.setX(lerp(this.camera.position.x, this.cursorEnd.position.x, 0.01))
       this.camera.position.setY(lerp(this.camera.position.y, this.cursorEnd.position.y, 0.01))
       this.controls.update();
