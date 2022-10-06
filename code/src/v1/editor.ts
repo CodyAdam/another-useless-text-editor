@@ -71,7 +71,6 @@ export class Editor {
       return allLines.join('\n');
     }
   }
-
   insertAt(pos: Position, text: string): void {
     const line = this.content[pos.getLine()];
     const toAdd: string[] = text.split('\n');
@@ -88,24 +87,18 @@ export class Editor {
       this.cur.setEnd(new Position(pos.getLine() + toAdd.length - 1, toAdd[toAdd.length - 1].length));
     }
   }
-
   getEndLinePos(line: number): Position {
     return new Position(line, this.content[line].length);
   }
-
   getStartLinePos(line: number): Position {
     return new Position(line, 0);
   }
-
   getLineCount(): number {
     return this.content.length;
   }
-
-
   getContent(): string[] {
     return this.content;
   }
-
   clampedPosition(pos: Position): Position {
     let y = Math.max(Math.min(pos.getLine(), this.content.length - 1), 0);
     const line = this.content[y];

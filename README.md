@@ -37,6 +37,27 @@ Ayant une idée générale des objectif du projet, nous pouvons réflechir à qu
 ```plantuml
 @startuml
 skinparam classAttributeIconSize 0
+
+    class Application{
+        -editor: Editor
+        -clipboard: String
+        -cursor: Cursor
+        +Application()
+        +onCopy(): void
+        +onPaste(): void
+        +onCut(): void
+        +onWrite(text: String): void
+        +onBackSpace(): void
+        +onDelete(): void
+        +onMoveStartCursor(pos: Position): void
+        +onMoveEndCursor(pos: Position): void
+        +onMoveCursor(pos: Position): void
+        +getCursor(): Cursor
+        +getClipboard(): String
+        +getEditor(): Editor
+        -render(): void
+    }
+
     class Editor {
         -cur: Cursor
         -content: List<String>
@@ -46,25 +67,11 @@ skinparam classAttributeIconSize 0
         +deleteAfter(pos: Position): void
         +insertAt(pos: Position, text: String): void
         +getBetween(start: Position, end: Position): String
-    }
-
-    class Application{
-        -editor: Editor
-        -clipboard: String
-        -cursor: Cursor
-        +Application()
-        +onCopy(): void
-        +onPaste(): void
-        +onWrite(text: String): void
-        +onDelete(): void
-        +onMoveStartCursor(pos: Position): void
-        +onMoveEndCursor(pos: Position): void
-        +onMoveCursor(pos: Position): void
-        +onBackSpace(): void
-        +getCursor(): Cursor
-        +getClipboard(): String
-        +getEditor(): Editor
-        -render(): void
+        +getEndLine(pos: Position): Position
+        +getStartLine(pos: Position): Position
+        +getLineCount(): int
+        +getContent(): List<String>
+        +clampedPosition(pos: Position): Position
     }
 
     Abstract Command{
@@ -84,61 +91,63 @@ skinparam classAttributeIconSize 0
         +setEnd(pos: Position)
     }
     
-    
     class Position{
         -col: int
         -line: int
         +Position(col: int, line: int)
         +getCol(): int
         +getLine(): int
+        +isAfter(other: Position): boolean
+        +isBefore(other: Position): boolean
+        +isEqual(other: Position): boolean
     }
 
-    class Write {
+    class WriteCommand {
         -text: String
         -cur: Cursor
         -edit : editor
         +Write(cur: Cursor, edit: Editor, text: String)
     }
 
-    class Delete {
+    class DeleteCommand {
         -cur: Cursor
         -edit : editor
         +Delete(cur: Cursor, edit: Editor)
     }
 
-    class Copy {
+    class BackSpaceCommand {
+        -cur: Cursor
+        -edit : editor
+        +BackSpace(cur: Cursor, edit: Editor)
+    }
+
+    class CopyCommand {
         -cur: Cursor
         -edit : editor
         -app: Application
         +Copy(cur: Cursor, edit: Editor, app: Application)
     }
 
-    class Paste {
+    class PasteCommand {
         -cur: Cursor
         -edit : editor
         -app: Application
         +Paste(cur: Cursor, edit: Editor, app: Application)
     }
 
-    class MoveCursor {
+    class MoveCursorCommand {
         -cur: Cursor
         -pos: Position
         +MoveCursor(cur: Cursor, pos: Position)
     }
 
-    class BackSpace {
-        -cur: Cursor
-        -edit : editor
-        +BackSpace(cur: Cursor, edit: Editor)
-    }
-
-    class MoveStartCursor {
+    class MoveStartCursorCommand {
         -pos: Position
         -cur: Cursor
         +MoveStartCursor(cur: Cursor, pos: Position)
     }
 
-    class MoveEndCursor {
+    class MoveEndCursorCommand {
         -pos: Position
         -cur: Cursor
         +MoveEndCursor(cur: cursor, pos: Position)
@@ -147,27 +156,27 @@ skinparam classAttributeIconSize 0
 
     Cursor "1" <--* "1" Application
     
-    Command <|-- Paste 
-    Command <|-- Write 
-    Command <|-- Copy 
-    Command <|-- MoveStartCursor 
-    Command <|-- MoveEndCursor 
-    Command <|-- Delete
-    Command <|-- BackSpace
-    Command <|-- MoveCursor
+    Command <|-- PasteCommand 
+    Command <|-- WriteCommand 
+    Command <|-- CopyCommand 
+    Command <|-- MoveStartCursorCommand 
+    Command <|-- MoveEndCursorCommand 
+    Command <|-- DeleteCommand
+    Command <|-- BackSpaceCommand
+    Command <|-- MoveCursorCommand
 
 
     Editor "1" <--* "1" Application
     Command "0..*" <--* "1" Application
 
-    Paste "1" --> "1" Editor
-    Write "1" --> "1"Editor
-    Copy "1" --> "1" Editor
-    MoveStartCursor"1" --> "1" Cursor
-    MoveEndCursor "1" --> "1" Cursor 
-    Delete "1" --> "1" Editor
-    BackSpace "1" --> "1" Editor
-    MoveCursor "1" --> "1" Cursor
+    PasteCommand "1" --> "1" Editor
+    WriteCommand "1" --> "1"Editor
+    CopyCommand "1" --> "1" Editor
+    MoveStartCursorCommand"1" --> "1" Cursor
+    MoveEndCursorCommand "1" --> "1" Cursor 
+    DeleteCommand "1" --> "1" Editor
+    BackSpaceCommand "1" --> "1" Editor
+    MoveCursorCommand "1" --> "1" Cursor
 
 @enduml
 ``` 
@@ -203,7 +212,7 @@ group init (app constructor)
 end
 
 group write
-    app -> com: new Write(app, "toto")
+    app -> com: new WriteCommand(app, "toto")
     com -> app: return instance
     app -> com: execute()
     com -> edit: addStringBetween(text, cur.getStart(), cur.getEnd())
@@ -213,7 +222,7 @@ group write
     com -> app: return void
 end
 group delete
-    app -> com: new Delete(app)
+    app -> com: new DeleteCommand(app)
     com -> app: return instance
     app -> com: execute()
     alt #Gold if cur.isSelection()
@@ -228,7 +237,7 @@ group delete
     com -> app: return void
 end
 group backSpace
-    app -> com: new BackSpace(app)
+    app -> com: new BackSpaceCommand(app)
     com -> app: return instance
     app -> com: execute()
     alt #Gold if cur.isSelection()
@@ -243,7 +252,7 @@ group backSpace
     com -> app: return void
 end
 group copy
-    app -> com: new Copy(app)
+    app -> com: new CopyCommand(app)
     com -> app: return instance
     app -> com: execute()
     com -> edit: getStringBetween(cur.getStart(), cur.getEnd())
@@ -253,7 +262,7 @@ group copy
     com -> app: return void
 end
 group paste
-    app -> com: new Paste(app)
+    app -> com: new PasteCommand(app)
     com -> app: return instance
     app -> com: execute()
     com -> app: getClipboard()
@@ -265,9 +274,13 @@ group paste
     com -> app: return void
 end
 
+group cut
+    app -> app: onCopy()
+    app -> app: onDelete()
+end
 
 group move cursor
-    app -> com: new MoveCursor(app)
+    app -> com: new MoveCursorCommand(app)
     com -> app: return instance
     app -> com: execute()
     com -> cur: setStart(Position)
@@ -279,7 +292,7 @@ group move cursor
 end
 
 group move start cursor
-    app -> com: new MoveStartCursor(app)
+    app -> com: new MoveStartCursorCommand(app)
     com -> app: return instance
     app -> com: execute()
     com -> cur: setStart(Position)
@@ -289,7 +302,7 @@ group move start cursor
 end
 
 group move end cursor
-    app -> com: new MoveEndCursor(app)
+    app -> com: new MoveEndCursorCommand(app)
     com -> app: return instance
     app -> com: execute()
     com -> cur: setEnd(Position)
@@ -304,27 +317,30 @@ end
 ``` 
 Nous avons défini 8 interactions principales entre les classes au sein de notre editeur de texte :
 
-- **init** : qui permet d'initialiser l'application avec un éditeur et un curseur.
+- **init** : permet d'initialiser l'application avec un éditeur et un curseur.
 
-- **write** : qui défini la procédure permettant d'écrire du texte dans le buffer.
+- **write** : permet d'écrire du texte dans le buffer.
 
-- **delete** : qui défini la procédure permettant de supprimer du texte après le curseur dans le buffer.
+- **delete** : permet de supprimer du texte après le curseur dans le buffer.
 
-- **backSpace** : qui défini la procédure permettant de supprimer du texte avant le curseur dans le buffer.
+- **backSpace** : permet de supprimer du texte avant le curseur dans le buffer.
 
-- **copy** : qui défini la procédure permettant de copier du texte en le stoquant dans le clipboard.
+- **copy** : permet de copier du texte en le stoquant dans le clipboard.
+   
+- **cut** : permet de copier du texte en le stoquant dans le clipboard et de supprimer la selection.
 
-- **paste** : qui défini la procédure permettant de coller du texte du clipboard dans le buffer.
+- **paste** : permet de coller du texte du clipboard dans le buffer.
 
-- **move cusror** : qui défini la procédure permettant de déplacer les deux curseur à la même position.
+- **move cusror** : permet de déplacer les deux curseur (début et fin) à la même position.
 
-- **move start cursor** : qui défini la procédure permettant de déplacer le curseur de gauche.
+- **move start cursor** : permet de déplacer le curseur de début.
 
-- **move end cursor** : qui défini la procédure permettant de déplacer le curseur de droite.
+- **move end cursor** : permet de déplacer le curseur de fin.
 
 ## III.3 Diagramme d'état
 
 Sachant désormais comment est contruit et fonctionne notre éditeur de texte, nous pouvons essayer de trouver et définir les différents états de notre application. Nous avons donc fini par définir le diagramme d'état suivant : 
+
 ```plantuml
 @startuml
     state Selection
@@ -347,21 +363,23 @@ Sachant désormais comment est contruit et fonctionne notre éditeur de texte, n
     NoSelection --> [*] : exit
 @enduml
 ``` 
+
 Nous avons défini deux états principaux : **"Selection"** et **"NoSelection"** pour notre Editeur. Notre application ne fait qu'alternée entre ces deux états selon les commandes efféctués. Pour cette alternance, nous avons également défini un état intermédiaire qui permet de définir si la commande **"move cursor"** va adoutir à un changement d'état ou non.
 
 ## III.4 Implémentation de l'éditeur
 
-Nous avons décider d'implémenter notre éditeur de texte en languages Web, principalement en TypeScript. Nous avons ainsi programmé notre éditeur en utilisant l'architecture de notre diagramme de classes. Fabriquant ainsi les fichiers suivants : 
+Nous avons décider d'implémenter notre éditeur de texte en languages Web soit en TypeScript. Nous avons ainsi programmé notre éditeur en utilisant l'architecture de notre diagramme de classes. Fabriquant ainsi les fichiers suivants :
+
 - **app.ts** : la classe principale de notre application qui permet de gérer les commandes ainsi que les interactions avec l'utilisateur
 - **commands.ts** : implémentation de toutes les commandes
 - **cursor.ts** : implémentation de la classe cursor
 - **editor.ts** : implémentation de la classe editor
 - **position.ts** : implémentation de la classe position
-- **index.ts** : fichier annexe qui permet d'exporter les classes (n'est pas important pour la compréhension du projet)
+- **index.ts** : fichier annexe qui permet d'exporter la classe principale (n'est pas important pour la compréhension du projet)
   
-Nous fabriquons ensuite l'interface graphique de notre éditeur de texte en utilisant le framework graphique **"Three.js"**. Celui-ci va nous permettre d'avoir d'avoir une interface constitué de modèles 3D, ce qui rend le projet  ludique. Nous n'allons bien évidement pas réutiliser les fonctions de bases du navigateur web pour la selection, le copier/coller, etc.
+Nous fabriquons ensuite l'interface graphique de notre éditeur de texte en utilisant le framework graphique **"three.js"**. Celui-ci va nous permettre d'avoir d'avoir une interface constitué de modèles 3D, ce qui rend le projet ludique. Nous n'allons bien évidement pas réutiliser les fonctions de bases du navigateur web pour la selection, le copier/coller, etc.
 
-Vous retrouverez les instructions pour lancer le projet dans le fichier **README.md** du projet.
+Vous retrouverez les instructions pour lancer le projet dans le fichier **README.md** du projet ou lancer la version en ligne [ici](https://editor.codyadm.com/).
 
 # IV. Diagrammes UML et conception de la V2
 
@@ -391,6 +409,7 @@ Nous réalisons ici aussi une extension de notre Diagramme de séquence pour la 
 class App
 @enduml
 ```
+
 Nous avons défini 4 interactions supplémentaires entre les classes au sein de notre editeur de texte :
 
 - **onRecord** : qui défini la procédure permettant d'enregistrer les commandes effectuées par l'utilisateur.

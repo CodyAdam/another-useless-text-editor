@@ -16,7 +16,7 @@ export class Application {
   private editor: Editor;
   private clipboard: string;
   private cursor: Cursor;
-  private listeners: (() => void)[] = [];
+  private listeners: (() => void)[] = []; // called on render (used for the UI)
   constructor() {
     console.log("\nLoading application...");
     this.clipboard = "";
@@ -45,6 +45,11 @@ export class Application {
     command.execute();
     this.render();
   }
+  onDelete(): void {
+    const command = new DeleteCommand(this.cursor, this.editor)
+    command.execute();
+    this.render();
+  }
   onMoveCursor(pos: Position): void {
     const command = new MoveCursorCommand(this.cursor, this.editor.clampedPosition(pos))
     command.execute();
@@ -57,11 +62,6 @@ export class Application {
   }
   onMoveEndCursor(pos: Position): void {
     const command = new MoveEndCursorCommand(this.cursor, this.editor.clampedPosition(pos))
-    command.execute();
-    this.render();
-  }
-  onDelete(): void {
-    const command = new DeleteCommand(this.cursor, this.editor)
     command.execute();
     this.render();
   }
