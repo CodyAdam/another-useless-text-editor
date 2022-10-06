@@ -2,10 +2,7 @@
 <html>
   <head>
     <title>useless.txt</title>
-    <meta
-      name="description"
-      content="Another useless text editor but it's in 3D"
-    />
+    <meta name="description" content="Another useless text editor but it's in 3D" />
     <meta charset="UTF-8" />
     <style>
       html,
@@ -18,12 +15,14 @@
         overflow: hidden;
       }
     </style>
-    <link rel="stylesheet" href="styleCompiled.css">
+    <link rel="stylesheet" href="styleCompiled.css" />
   </head>
   <body>
     <!-- \n\n\nCommands :\n\n- Arrows: move the cursor\n- Shift + Arrows: select\n- Ctrl + X: cut selection\n- Ctrl + C: copy selection\n- Ctrl + V: paste\n- Ctrl + A: select all\n- Mouse: camera zoom/pan\n- Home/End/PgUp/PgDown: navigation -->
     <script type="module" src="index.ts"></script>
-    <div class="absolute bottom-7 left-5 flex flex-col gap-3 text-white [&>*]:select-none [&>p]:flex [&>p]:items-center [&>p]:gap-2">
+    <div
+      class="absolute bottom-7 left-5 flex flex-col gap-3 text-white [&>*]:select-none [&>p]:flex [&>p]:items-center [&>p]:gap-2"
+    >
       <h1 class="text-xl font-semibold pb-2">Controls</h1>
       <!-- ←↑→↓ -->
       <p><span class="key">arrows</span> Move cursor</p>

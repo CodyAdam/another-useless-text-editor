@@ -4,14 +4,10 @@ import {
   Color,
   Mesh,
   MeshNormalMaterial,
-  MeshMatcapMaterial,
-  MeshLambertMaterial,
   BoxGeometry,
   PerspectiveCamera,
   WebGLRenderer,
-  OrthographicCamera,
   MeshPhongMaterial,
-  AmbientLightProbe,
   PointLight,
   Vector3,
   Clock,
@@ -70,7 +66,7 @@ class Main {
   public lastText: string;
 
   public modifiers: { shift: boolean, ctrl: boolean };
-  public mouseButtons : { left: boolean, right: boolean, middle: boolean };
+  public mouseButtons: { left: boolean, right: boolean, middle: boolean };
 
   public animateCursor: Boolean;
   public autoMove: Boolean;
@@ -176,21 +172,21 @@ class Main {
     this.text = new Map();
     this.cache = new Map();
 
-    this.pointLightStart = new PointLight(0xff6efa, 3, 2000);
-    this.pointLightEnd = new PointLight(0xff1717, 3, 2000);
-    this.pointLightEnd.position.set(0, 0, 100);
-    this.pointLightStart.position.set(0, 0, 100);
-    this.scene.add(this.pointLightEnd);
+    this.pointLightStart = new PointLight(0xff0000, 5, 700);
+    this.pointLightStart.position.set(0, 0, 500);
     this.scene.add(this.pointLightStart);
-    const directionnal = new DirectionalLight(0xf9ff47, 1.2);
+    this.pointLightEnd = new PointLight(0x03fc52, 5, 700);
+    this.pointLightEnd.position.set(0, 0, 500);
+    this.scene.add(this.pointLightEnd);
+    const directionnal = new DirectionalLight(0xfcd703, .8);
     directionnal.position.set(0, 1, 1);
     this.scene.add(directionnal);
-    const ambient = new AmbientLight(0xffffff, 0.12);
+    const ambient = new AmbientLight(0xe39cff, 0.2);
     this.scene.add(ambient);
 
     this.app = new Application();
     this.app.addRenderListener(() => this.render());
-    this.app.onWrite("Another useless\ntext editor!");
+    this.app.onWrite("Another useless\ntext editor!\nAnother useless\ntext editor!\nAnother useless\ntext editor!\nAnother useless\ntext editor!\nAnother useless\ntext editor!\nAnother useless\ntext editor!\nAnother useless\ntext editor!\nAnother useless\ntext editor!");
     this.app.onMoveStartCursor(new Position(0, 15));
     this.app.onMoveEndCursor(new Position(0, 8));
 
@@ -403,6 +399,7 @@ class Main {
         max.divideScalar(2);
         this.controls.target.setX(lerp(this.controls.target.x, max.x, 0.01));
         this.controls.target.setY(lerp(this.controls.target.y, max.y, 0.01));
+        this.controls.target.setZ(0);
       }
     }
     if (this.animateCursor) {
@@ -417,6 +414,11 @@ class Main {
       this.pointLightEnd.position.setY(this.cursorEnd.position.y)
       this.pointLightStart.position.setX(this.cursorStart.position.x)
       this.pointLightStart.position.setY(this.cursorStart.position.y)
+
+      this.pointLightEnd.intensity = this.pointLightStart.position.distanceTo(this.pointLightEnd.position) / 1000;
+      this.pointLightStart.intensity = this.pointLightStart.position.distanceTo(this.pointLightEnd.position) / 1000;
+      this.pointLightEnd.distance = this.pointLightStart.position.distanceTo(this.pointLightEnd.position);
+      this.pointLightStart.distance = this.pointLightStart.position.distanceTo(this.pointLightEnd.position);
     }
 
     if (this.animateSelection) {
