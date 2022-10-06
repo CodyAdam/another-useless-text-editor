@@ -171,9 +171,6 @@ class Main {
         this.mouseButtons.middle = false;
     })
 
-
-
-
     this.createGui();
 
     this.text = new Map();
@@ -191,10 +188,9 @@ class Main {
 
     this.app = new Application();
     this.app.addRenderListener(() => this.render());
-    this.app.onWrite("Another useless\ntext editor!\n\n\nCommands :\n\n- Arrows: move the cursor\n- Shift + Arrows: select\n- Ctrl + C: copy selection\n- Ctrl + V: paste\n- Ctrl + A: select all\n- Mouse: camera zoom/pan\n- Home/End/PgUp/PgDown: navigation");
+    this.app.onWrite("Another useless\ntext editor!\n\n\nCommands :\n\n- Arrows: move the cursor\n- Shift + Arrows: select\n- Ctrl + X: cut selection\n- Ctrl + C: copy selection\n- Ctrl + V: paste\n- Ctrl + A: select all\n- Mouse: camera zoom/pan\n- Home/End/PgUp/PgDown: navigation");
     this.app.onMoveStartCursor(new Position(0, 15));
     this.app.onMoveEndCursor(new Position(0, 8));
-
 
     this.render();
     console.log(this);
