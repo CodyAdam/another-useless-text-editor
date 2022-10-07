@@ -36,10 +36,23 @@
       <p><span class="key">ctrl</span> + <span class="key">C</span> Copy selection</p>
       <p><span class="key">ctrl</span> + <span class="key">V</span> Paste</p>
       <p><span class="key">ctrl</span> + <span class="key">A</span> Select all</p>
+      <p><span class="key">ctrl</span> + <span class="key">Z</span> Undo</p>
+      <p><span class="key">ctrl</span> + <span class="key">shift</span> + <span class="key">Z</span> Redo</p>
       <div class="border-b border-gray-500"></div>
       <p><span class="key">mouse wheel</span> Zoom</p>
       <p><span class="key">left click</span> Rotate</p>
       <p><span class="key">right click</span> Pan</p>
+    </div>
+    <div
+      class="absolute bottom-7 right-5 flex flex-col gap-3 text-white [&>*]:select-none [&>p]:flex [&>p]:items-center [&>p]:gap-2 items-end"
+    >
+      <h1 class="text-xl font-semibold pb-2 pr-6">History</h1>
+      <div class="flex max-h-72 overflow-y-auto items-end flex-col pr-6">
+
+        <p id="history" class="text-sm text-right leading-6">
+          <span class="text-gray-500">Nothing yet</span>
+        </p>
+      </div>
     </div>
   </body>
 </html>
