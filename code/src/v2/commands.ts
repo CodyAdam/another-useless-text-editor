@@ -16,7 +16,7 @@ abstract class Command {
   }
 }
 
-abstract class UndoableCommand extends Command {
+export abstract class UndoableCommand extends Command {
   protected deletedText: string;
 
   constructor(name: string) {
