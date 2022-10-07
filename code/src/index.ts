@@ -19,10 +19,10 @@ import { TextGeometry } from './TextGeometry';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "stats.js";
 import { Font } from './FontLoader';
-import Application from "./v1";
+import Application from "./v2";
 import { GUI } from 'dat.gui'
 import font from "./fonts/600.json"
-import { Position } from './v1/position';
+import { Position } from './v2/position';
 import { lerp } from 'three/src/math/MathUtils';
 
 const H = 152;
@@ -78,6 +78,8 @@ class Main {
   public cache: Map<string, Mesh>
   public clock: Clock;
 
+  public historyDom: HTMLElement | null;
+
   constructor() {
     // Init scene. 
     this.scene = new Scene();
@@ -125,6 +127,7 @@ class Main {
     this.animateSelection = true;
     this.scene.add(this.cursorStart);
     this.scene.add(this.cursorEnd)
+    this.historyDom = document.getElementById("history");
 
     this.modifiers = {
       shift: false,
@@ -186,7 +189,7 @@ class Main {
 
     this.app = new Application();
     this.app.addRenderListener(() => this.render());
-    this.app.onWrite("Another useless\ntext editor!\nAnother useless\ntext editor!\nAnother useless\ntext editor!\nAnother useless\ntext editor!\nAnother useless\ntext editor!\nAnother useless\ntext editor!\nAnother useless\ntext editor!\nAnother useless\ntext editor!");
+    this.app.onWrite("Another useless\ntext editor!");
     this.app.onMoveStartCursor(new Position(0, 15));
     this.app.onMoveEndCursor(new Position(0, 8));
 
@@ -295,6 +298,9 @@ class Main {
         else if (e.key === "a") {
           this.app.onMoveStartCursor(new Position(0, 0));
           this.app.onMoveEndCursor(new Position(99999, 99999));
+        } else if (e.key === "z") {
+          if (this.modifiers.shift) this.app.onRedo();
+          else this.app.onUndo();
         }
       }
       else
@@ -370,6 +376,19 @@ class Main {
           char.mesh.material = new MeshNormalMaterial();
         }
       });
+    }
+
+    //update history list
+    if (this.historyDom) {
+      const history = this.app.getFormatedHistory().reverse();
+      let text = "";
+      history.forEach((command, index) => {
+        if(command.done)
+        text += command.name + "<br/>";
+        else 
+        text += `<span class=\"text-gray-500\">${command.name}</span><br/>`
+      })
+      this.historyDom.innerHTML = text;
     }
 
     this.stats.begin();
