@@ -200,6 +200,21 @@ class Main {
 
   private createGui() {
     this.gui = new GUI();
+
+    const perfFold = this.gui.addFolder("Performance");
+    perfFold.add({
+      low: () => {
+        this.animateCursor = false; this.autoMove = false; this.animateSelection = false;
+        this.text.forEach((char, pos) => {
+          char.mesh.position.setY(-pos.getLine() * H);
+          char.mesh.rotation.set(0, 0, 0);
+        });
+        this.render();
+      }
+    }, "low").name("Performance : Low")
+    perfFold.add({ low: () => { this.animateCursor = true; this.autoMove = true; this.animateSelection = true } }, "low").name("Performance : High")
+
+    perfFold.open();
     const cursorFold = this.gui.addFolder("Cursor");
     cursorFold.add(this.cursorStart.scale, 'x', 1, 100, .1).name('scale x').onChange(() => { this.cursorEnd.scale.x = this.cursorStart.scale.x; this.render() });
     cursorFold.add(this.cursorStart.scale, 'y', .1, 5, .1).name('scale y').onChange(() => { this.cursorEnd.scale.y = this.cursorStart.scale.y; this.render() });
@@ -299,8 +314,9 @@ class Main {
           this.app.onMoveStartCursor(new Position(0, 0));
           this.app.onMoveEndCursor(new Position(99999, 99999));
         } else if (e.key === "z") {
-          if (this.modifiers.shift) this.app.onRedo();
-          else this.app.onUndo();
+          this.app.onUndo();
+        } else if (e.key === "y") {
+          this.app.onRedo();
         }
       }
       else
@@ -367,7 +383,7 @@ class Main {
     if (!this.animateSelection) {
       this.text.forEach((char, pos) => {
         if (this.isSelected(pos)) {
-          char.mesh.rotation.set(.2, 0.1, 0.2);
+          char.mesh.rotation.set(-.2, -0.1, - 0.1);
           const material = new MeshPhongMaterial();
           char.mesh.material = material;
         }
@@ -383,10 +399,10 @@ class Main {
       const history = this.app.getFormatedHistory().reverse();
       let text = "";
       history.forEach((command, index) => {
-        if(command.done)
-        text += command.name + "<br/>";
-        else 
-        text += `<span class=\"text-gray-500\">${command.name}</span><br/>`
+        if (command.done)
+          text += command.name + "<br/>";
+        else
+          text += `<span class=\"text-gray-500\">${command.name}</span><br/>`
       })
       this.historyDom.innerHTML = text;
     }
