@@ -94,7 +94,7 @@ skinparam classAttributeIconSize 0
     class Position{
         -col: int
         -line: int
-        +Position(col: int, line: int)
+        +Position(line: int, col: int)
         +getCol(): int
         +getLine(): int
         +isAfter(other: Position): boolean
@@ -441,7 +441,7 @@ skinparam classAttributeIconSize 0
     }
 
     Abstract UndoableCommand{
-        -deletedText: String
+        ~deletedText: String
         +undo(): void
     }
     
@@ -459,7 +459,7 @@ skinparam classAttributeIconSize 0
     class Position{
         -col: int
         -line: int
-        +Position(col: int, line: int)
+        +Position(line: int, col: int)
         +getCol(): int
         +getLine(): int
         +isAfter(other: Position): boolean
@@ -472,7 +472,6 @@ skinparam classAttributeIconSize 0
         -cur: Cursor
         -edit : editor
         -startPositon: Position
-        -endPosition: Position
         +Write(cur: Cursor, edit: Editor, text: String)
     }
 
@@ -480,7 +479,6 @@ skinparam classAttributeIconSize 0
         -cur: Cursor
         -edit : editor
         -startPositon: Position
-        -endPosition: Position
         +Delete(cur: Cursor, edit: Editor)
     }
 
@@ -488,7 +486,6 @@ skinparam classAttributeIconSize 0
         -cur: Cursor
         -edit : editor
         -startPositon: Position
-        -endPosition: Position
         +BackSpace(cur: Cursor, edit: Editor)
     }
 
