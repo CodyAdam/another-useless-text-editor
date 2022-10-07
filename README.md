@@ -441,10 +441,7 @@ skinparam classAttributeIconSize 0
     }
 
     Abstract UndoableCommand{
-        +Command()
-        +execute(): void
         +undo(): void
-        +getName(): String
     }
     
     class Cursor{
@@ -527,7 +524,8 @@ skinparam classAttributeIconSize 0
     UndoableCommand <|-- WriteCommand 
     UndoableCommand <|-- DeleteCommand
     UndoableCommand <|-- BackSpaceCommand
-    
+    UndoableCommand --|> Command
+
     Command <|-- CopyCommand 
     Command <|-- MoveStartCursorCommand 
     Command <|-- MoveEndCursorCommand 
@@ -535,7 +533,10 @@ skinparam classAttributeIconSize 0
 
 
     Editor "1" <--* "1" Application
-    Command "0..*" <--* "1" Application
+    'Command "0..*" <--* "1" Application 
+    ' WHY?? plutôt
+    UndoableCommand "0..*" <--* "1" Application 
+    
 
     PasteCommand "1" --> "1" Editor
     WriteCommand "1" --> "1"Editor
