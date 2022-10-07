@@ -2,31 +2,28 @@ import { Cursor } from './cursor';
 import { Position } from './position';
 
 export class Editor {
-  private cur: Cursor
   private content: string[];
-  constructor(cur: Cursor) {
-    this.cur = cur;
+  constructor() {
     this.content = [""];
     console.log("Editor loaded!");
   }
+
   deleteBetween(start: Position, end: Position): void {
-    if (start.getLine() > end.getLine() || (start.getLine() === end.getLine() && start.getCol() > end.getCol())) {
+    if (end.isBefore(start)) {
       const tmp = start;
       start = end;
       end = tmp;
     }
-    const length = end.getLine() - start.getLine() + 1;
-    if (length === 1) {
+    const lineBetween = end.getLine() - start.getLine() + 1;
+    if (lineBetween === 1) {
       const line = this.content[start.getLine()];
       this.content[start.getLine()] = getBefore(line, start.getCol()) + getAfter(line, end.getCol());
     }
     else {
       const firstPart = getBefore(this.content[start.getLine()], start.getCol());
       const lastPart = getAfter(this.content[end.getLine()], end.getCol());
-      this.content.splice(start.getLine(), length, firstPart + lastPart);
+      this.content.splice(start.getLine(), lineBetween, firstPart + lastPart);
     }
-    this.cur.setStart(start);
-    this.cur.setEnd(start);
   }
   deleteBefore(position: Position): void {
     // delete the char before the cursor
@@ -34,14 +31,10 @@ export class Editor {
     const y = position.getLine();
     const line = this.content[y];
     if (x === 0 && y > 0) {
-      this.cur.setStart(this.getEndLinePos(y - 1));
-      this.cur.setEnd(this.getEndLinePos(y - 1));
       this.content[y - 1] += line;
       this.content.splice(y, 1);
     } else if (x > 0) {
       this.content[y] = getBefore(line, x - 1) + getAfter(line, x);
-      this.cur.setStart(new Position(y, x - 1));
-      this.cur.setEnd(new Position(y, x - 1));
     }
   }
   deleteAfter(position: Position): void {
@@ -57,7 +50,7 @@ export class Editor {
     }
   }
   getBetween(start: Position, end: Position): string {
-    if (start.getLine() > end.getLine() || (start.getLine() === end.getLine() && start.getCol() > end.getCol())) {
+    if (end.isBefore(start)) {
       const tmp = start;
       start = end;
       end = tmp;
@@ -76,15 +69,9 @@ export class Editor {
     const toAdd: string[] = text.split('\n');
     if (toAdd.length === 1) {
       this.content[pos.getLine()] = getBefore(line, pos.getCol()) + text + getAfter(line, pos.getCol());
-      //move cursor to end of inserted text
-      this.cur.setStart(new Position(pos.getLine(), pos.getCol() + text.length));
-      this.cur.setEnd(new Position(pos.getLine(), pos.getCol() + text.length));
     }
     else {
       this.content.splice(pos.getLine(), 1, getBefore(line, pos.getCol()) + toAdd[0], ...toAdd.slice(1, toAdd.length - 1), toAdd[toAdd.length - 1] + getAfter(line, pos.getCol()));
-      //move cursor to end of inserted text 
-      this.cur.setStart(new Position(pos.getLine() + toAdd.length - 1, toAdd[toAdd.length - 1].length));
-      this.cur.setEnd(new Position(pos.getLine() + toAdd.length - 1, toAdd[toAdd.length - 1].length));
     }
   }
   getEndLinePos(line: number): Position {
@@ -109,6 +96,7 @@ export class Editor {
 
 
 // Helper function 
+
 
 function getBetween(string: string, indexStart: number, indexEnd: number): string {
   return string.substring(indexStart, indexEnd);
