@@ -437,6 +437,12 @@ skinparam classAttributeIconSize 0
     Abstract Command{
         +Command()
         +execute(): void
+        +getName(): String
+    }
+
+    Abstract UndoableCommand{
+        +Command()
+        +execute(): void
         +undo(): void
         +getName(): String
     }
@@ -517,13 +523,14 @@ skinparam classAttributeIconSize 0
 
     Cursor "1" <--* "1" Application
     
-    Command <|-- PasteCommand 
-    Command <|-- WriteCommand 
+    UndoableCommand <|-- PasteCommand 
+    UndoableCommand <|-- WriteCommand 
+    UndoableCommand <|-- DeleteCommand
+    UndoableCommand <|-- BackSpaceCommand
+    
     Command <|-- CopyCommand 
     Command <|-- MoveStartCursorCommand 
     Command <|-- MoveEndCursorCommand 
-    Command <|-- DeleteCommand
-    Command <|-- BackSpaceCommand
     Command <|-- MoveCursorCommand
 
 
