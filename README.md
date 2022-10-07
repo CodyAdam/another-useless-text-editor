@@ -435,13 +435,16 @@ skinparam classAttributeIconSize 0
     }
 
     Abstract Command{
-        +Command()
+        +Command(name: String)
         +execute(): void
         +getName(): String
     }
 
     Abstract UndoableCommand{
         ~deletedText: String
+        ~startPositon: Position
+        ~endPosition: Position
+        +UndoableCommand(cur: Cursor, name: String)
         +undo(): void
     }
     
@@ -470,38 +473,33 @@ skinparam classAttributeIconSize 0
     class WriteCommand {
         -text: String
         -cur: Cursor
-        -edit : editor
-        -startPositon: Position
+        -edit : Editor
         +Write(cur: Cursor, edit: Editor, text: String)
     }
 
     class DeleteCommand {
         -cur: Cursor
-        -edit : editor
-        -startPositon: Position
+        -edit : Editor
         +Delete(cur: Cursor, edit: Editor)
     }
 
     class BackSpaceCommand {
         -cur: Cursor
-        -edit : editor
-        -startPositon: Position
+        -edit : Editor
         +BackSpace(cur: Cursor, edit: Editor)
     }
 
     class CopyCommand {
         -cur: Cursor
-        -edit : editor
+        -edit : Editor
         -app: Application
         +Copy(cur: Cursor, edit: Editor, app: Application)
     }
 
     class PasteCommand {
         -cur: Cursor
-        -edit : editor
+        -edit : Editor
         -app: Application
-        -startPositon: Position
-        -endPosition: Position
         +Paste(cur: Cursor, edit: Editor, app: Application)
     }
 
