@@ -396,9 +396,151 @@ Cependant, nous avons remarqué que notre éditeur de texte ne permet pas de fai
 Nous réalisons une extension de notre Diagramme de classes pour la version 2 de notre éditeur de texte qui reprend le diagramme de la version 1 comme structure initiale. Nous avons fini par définir le nouveau diagramme de classes suivant : 
 ```plantuml
 @startuml
-class App
+skinparam classAttributeIconSize 0
+
+    class Application{
+        -editor: Editor
+        -clipboard: String
+        -cursor: Cursor
+        +Application()
+        +onCopy(): void
+        +onPaste(): void
+        +onCut(): void
+        +onWrite(text: String): void
+        +onBackSpace(): void
+        +onDelete(): void
+        +onMoveStartCursor(pos: Position): void
+        +onMoveEndCursor(pos: Position): void
+        +onMoveCursor(pos: Position): void
+        +getCursor(): Cursor
+        +getClipboard(): String
+        +getEditor(): Editor
+        -render(): void
+    }
+
+    class Editor {
+        -cur: Cursor
+        -content: List<String>
+        +Editor(cur: Cursor)
+        +deleteBetween(start: Position, end: Position): void
+        +deleteBefore(pos: Position): void
+        +deleteAfter(pos: Position): void
+        +insertAt(pos: Position, text: String): void
+        +getBetween(start: Position, end: Position): String
+        +getEndLine(pos: Position): Position
+        +getStartLine(pos: Position): Position
+        +getLineCount(): int
+        +getContent(): List<String>
+        +clampedPosition(pos: Position): Position
+    }
+
+    Abstract Command{
+        +Command()
+        +execute(): void
+        +undo(): void
+        +getName(): String
+    }
+    
+    class Cursor{
+        -start: Position
+        -end: Position
+        +Cursor()
+        +isSelection()
+        +getStart()
+        +getEnd()
+        +setStart(pos: Position)
+        +setEnd(pos: Position)
+    }
+    
+    class Position{
+        -col: int
+        -line: int
+        +Position(col: int, line: int)
+        +getCol(): int
+        +getLine(): int
+        +isAfter(other: Position): boolean
+        +isBefore(other: Position): boolean
+        +isEqual(other: Position): boolean
+    }
+
+    class WriteCommand {
+        -text: String
+        -cur: Cursor
+        -edit : editor
+        +Write(cur: Cursor, edit: Editor, text: String)
+    }
+
+    class DeleteCommand {
+        -cur: Cursor
+        -edit : editor
+        +Delete(cur: Cursor, edit: Editor)
+    }
+
+    class BackSpaceCommand {
+        -cur: Cursor
+        -edit : editor
+        +BackSpace(cur: Cursor, edit: Editor)
+    }
+
+    class CopyCommand {
+        -cur: Cursor
+        -edit : editor
+        -app: Application
+        +Copy(cur: Cursor, edit: Editor, app: Application)
+    }
+
+    class PasteCommand {
+        -cur: Cursor
+        -edit : editor
+        -app: Application
+        +Paste(cur: Cursor, edit: Editor, app: Application)
+    }
+
+    class MoveCursorCommand {
+        -cur: Cursor
+        -pos: Position
+        +MoveCursor(cur: Cursor, pos: Position)
+    }
+
+    class MoveStartCursorCommand {
+        -pos: Position
+        -cur: Cursor
+        +MoveStartCursor(cur: Cursor, pos: Position)
+    }
+
+    class MoveEndCursorCommand {
+        -pos: Position
+        -cur: Cursor
+        +MoveEndCursor(cur: cursor, pos: Position)
+    }
+
+
+    Cursor "1" <--* "1" Application
+    
+    Command <|-- PasteCommand 
+    Command <|-- WriteCommand 
+    Command <|-- CopyCommand 
+    Command <|-- MoveStartCursorCommand 
+    Command <|-- MoveEndCursorCommand 
+    Command <|-- DeleteCommand
+    Command <|-- BackSpaceCommand
+    Command <|-- MoveCursorCommand
+
+
+    Editor "1" <--* "1" Application
+    Command "0..*" <--* "1" Application
+
+    PasteCommand "1" --> "1" Editor
+    WriteCommand "1" --> "1"Editor
+    CopyCommand "1" --> "1" Editor
+    MoveStartCursorCommand"1" --> "1" Cursor
+    MoveEndCursorCommand "1" --> "1" Cursor 
+    DeleteCommand "1" --> "1" Editor
+    BackSpaceCommand "1" --> "1" Editor
+    MoveCursorCommand "1" --> "1" Cursor
+
 @enduml
-```
+``` 
 Dans cette version 2, nous avons décidé de définir les nouvelles classes **"Script"** et **"History"**. La classe **"Script"** permet de stocker les commandes effectuées par l'utilisateur. La classe **"History"** permet de stocker les commandes effectuées par l'utilisateur et de les annuler/refaire.
 
 ## IV.2 Diagramme de séquence
