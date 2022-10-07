@@ -441,6 +441,7 @@ skinparam classAttributeIconSize 0
     }
 
     Abstract UndoableCommand{
+        -deletedText: String
         +undo(): void
     }
     
@@ -470,18 +471,24 @@ skinparam classAttributeIconSize 0
         -text: String
         -cur: Cursor
         -edit : editor
+        -startPositon: Position
+        -endPosition: Position
         +Write(cur: Cursor, edit: Editor, text: String)
     }
 
     class DeleteCommand {
         -cur: Cursor
         -edit : editor
+        -startPositon: Position
+        -endPosition: Position
         +Delete(cur: Cursor, edit: Editor)
     }
 
     class BackSpaceCommand {
         -cur: Cursor
         -edit : editor
+        -startPositon: Position
+        -endPosition: Position
         +BackSpace(cur: Cursor, edit: Editor)
     }
 
@@ -496,6 +503,8 @@ skinparam classAttributeIconSize 0
         -cur: Cursor
         -edit : editor
         -app: Application
+        -startPositon: Position
+        -endPosition: Position
         +Paste(cur: Cursor, edit: Editor, app: Application)
     }
 
