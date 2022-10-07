@@ -27,4 +27,8 @@ export class Position {
   isEqual(other: Position) {
     return this.line === other.line && this.col === other.col;
   }
+
+  static from(other: Position):Position {
+    return new Position(other.getLine(), other.getCol());
+  }
 }

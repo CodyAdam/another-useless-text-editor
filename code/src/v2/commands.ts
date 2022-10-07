@@ -17,30 +17,27 @@ abstract class Command {
 }
 
 export abstract class UndoableCommand extends Command {
-  protected deletedText: string;
-
   constructor(name: string) {
     super(name);
-    this.deletedText = '';
   }
-
   abstract undo(): void;
-  
 }
 
 export class BackspaceCommand extends UndoableCommand {
   private cur: Cursor;
   private edit: Editor;
   private startPositon: Position;
+  private deletedText: string;
   constructor(cur: Cursor, edit: Editor) {
     super('Delete');
     this.cur = cur;
     this.edit = edit;
+    this.deletedText = "";
     this.startPositon = this.cur.getStart();
   }
   execute(): void {
     console.log('Backspace ' + this.cur.getStart().toString());
-    if (this.cur.isSelection()){
+    if (this.cur.isSelection()) {
       this.deletedText = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
       this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
       this.cur.setEnd(this.cur.getStart());
@@ -52,7 +49,7 @@ export class BackspaceCommand extends UndoableCommand {
     }
   }
 
-   undo(): void {
+  undo(): void {
     //TODO
     console.log('Undo Backspace ' + this.cur.getStart().toString());
     this.edit.insertAt(this.startPositon, this.deletedText);
@@ -63,29 +60,76 @@ export class WriteCommand extends UndoableCommand {
   private text: string;
   private cur: Cursor;
   private edit: Editor;
-  private startPositon: Position;
+  private deletedText: string | null;
+  private beforeCur: Cursor | null;
+  private afterPos: Position | null;
   constructor(cur: Cursor, edit: Editor, text: string) {
-    super('Write');
+    super(`Write ${text}`);
     this.cur = cur;
     this.edit = edit;
     this.text = text;
-    this.startPositon = this.cur.getStart();
+    this.deletedText = null;
+    this.beforeCur = null;
+    this.afterPos = null;
   }
   execute(): void {
-    console.log('Write ' + this.cur.getStart().toString() + ' ' + this.text);
-    if (this.cur.isSelection()) {
-      this.deletedText = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
-      this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
-      this.cur.setEnd(this.cur.getStart());
+    // INIT CURSOR POS
+    if (this.beforeCur)
+      this.cur.copy(this.beforeCur);
+    else
+      this.beforeCur = Cursor.from(this.cur);
+
+    // ORDER START END
+    let start = this.cur.getStart()
+    let end = this.cur.getEnd();
+    if (end.isBefore(start)) {
+      const tmp = start;
+      start = end;
+      end = tmp;
     }
+
+    // DELETE SELECTION
+    if (this.cur.isSelection()) {
+      this.deletedText = this.edit.getBetween(start, end);
+      this.edit.deleteBetween(start, end);
+      this.cur.setEnd(start);
+    }
+
+    // WHRITE
+    const textByLines = this.text.split("\n");
     this.edit.insertAt(this.cur.getStart(), this.text);
+
+    //MOVE CURSOR
+    if (textByLines.length == 1)
+      this.cur.setStart(new Position(start.getLine(), start.getCol() + textByLines[0].length))
+    else
+      this.cur.setStart(new Position(start.getLine() + textByLines.length - 1, textByLines[textByLines.length - 1].length))
+    this.cur.setEnd(this.cur.getStart())
+    this.afterPos = this.cur.getStart()
   }
 
-   undo(): void {
-    //TODO
-    console.log('Undo Write ' + this.cur.getStart().toString() + ' ' + this.text);
-    this.edit.deleteBefore(this.startPositon);
-    this.edit.insertAt(this.startPositon, this.deletedText);
+  undo(): void {
+    if (!this.beforeCur || !this.afterPos) {
+      console.error("undo called before execute")
+      return
+    }
+
+    // ORDER START END
+    let start = this.beforeCur.getStart()
+    let end = this.beforeCur.getEnd();
+    if (end.isBefore(start)) {
+      const tmp = start;
+      start = end;
+      end = tmp;
+    }
+
+    // DELETE AND WRITE
+    this.edit.deleteBetween(start, this.afterPos);
+    if (this.deletedText)
+      this.edit.insertAt(start, this.deletedText);
+    
+    // SET PREVIOUS CURSOR
+    this.cur.copy(this.beforeCur);
   }
 }
 
@@ -168,7 +212,7 @@ export class CopyCommand extends Command {
   execute(): void {
     const newClip = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
     console.log('Copy ' + this.cur.getStart().toString() + ' ' + this.cur.getEnd().toString() + ' ' + newClip);
-    
+
     this.app.setClipboard(newClip);
   }
 }

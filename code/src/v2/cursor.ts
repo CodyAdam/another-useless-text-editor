@@ -17,8 +17,9 @@ export class Cursor {
     this.end = end;
     console.log("Cursor loaded!");
   }
+
   isSelection(): boolean {
-    return this.start.getLine() !== this.end.getLine() || this.start.getCol() !== this.end.getCol();
+    return !this.start.isEqual(this.end);
   }
   getStart(): Position {
     return this.start;
@@ -31,5 +32,14 @@ export class Cursor {
   }
   setEnd(end: Position): void {
     this.end = end;
+  }
+
+  copy(other: Cursor): void {
+    this.setStart(Position.from(other.getStart()));
+    this.setEnd(Position.from(other.getEnd()));
+  }
+
+  static from(other: Cursor) : Cursor {
+    return new Cursor(Position.from(other.start), Position.from(other.end));
   }
 }

@@ -24,7 +24,7 @@ export class Application {
     console.log("\nLoading application...");
     this.clipboard = "";
     this.cursor = new Cursor();
-    this.editor = new Editor(this.cursor);
+    this.editor = new Editor();
     this.render();
     console.log("Application successfully loaded!\n\n");
   }
@@ -73,8 +73,11 @@ export class Application {
     this.render();
   }
   onCut(): void {
-    this.onCopy()
-    this.onDelete()
+    const copyCommand = new CopyCommand(this.cursor, this.editor, this)
+    copyCommand.execute();
+    const deleteCommand = new DeleteCommand(this.cursor, this.editor)
+    deleteCommand.execute();
+    this.addCommand(deleteCommand);
   }
 
   onUndo(): void {
@@ -100,7 +103,8 @@ export class Application {
     this.historyIndex++;
   }
 
-  getFormatedHistory() {
+  // For the UI to draw the history
+  getFormatedHistory() { 
     return this.history.map((command, index) => {
       return { name: command.getName(), done: index < this.historyIndex }
     })
