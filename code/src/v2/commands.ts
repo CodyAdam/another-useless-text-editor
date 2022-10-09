@@ -14,6 +14,9 @@ abstract class Command {
   getName(): string {
     return this.name;
   }
+  setName(name: string): void {
+    this.name = name;
+  }
 }
 
 export abstract class UndoableCommand extends Command {
@@ -21,39 +24,6 @@ export abstract class UndoableCommand extends Command {
     super(name);
   }
   abstract undo(): void;
-}
-
-export class BackspaceCommand extends UndoableCommand {
-  private cur: Cursor;
-  private edit: Editor;
-  private startPositon: Position;
-  private deletedText: string;
-  constructor(cur: Cursor, edit: Editor) {
-    super('Delete');
-    this.cur = cur;
-    this.edit = edit;
-    this.deletedText = "";
-    this.startPositon = this.cur.getStart();
-  }
-  execute(): void {
-    console.log('Backspace ' + this.cur.getStart().toString());
-    if (this.cur.isSelection()) {
-      this.deletedText = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
-      this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
-      this.cur.setEnd(this.cur.getStart());
-    } else {
-      const curstartcol = this.cur.getStart().getCol();
-      const curstartrow = this.cur.getStart().getLine();
-      this.deletedText = this.edit.getBetween(this.cur.getStart(), this.edit.clampedPosition(new Position(curstartrow, curstartcol - 1)));
-      this.edit.deleteBefore(this.cur.getStart());
-    }
-  }
-
-  undo(): void {
-    //TODO
-    console.log('Undo Backspace ' + this.cur.getStart().toString());
-    this.edit.insertAt(this.startPositon, this.deletedText);
-  }
 }
 
 export class WriteCommand extends UndoableCommand {
@@ -64,7 +34,7 @@ export class WriteCommand extends UndoableCommand {
   private beforeCur: Cursor | null;
   private afterPos: Position | null;
   constructor(cur: Cursor, edit: Editor, text: string) {
-    super(`Write ${text}`);
+    super(`Write "${text.replace(/\n/g, "\\n")}"`);
     this.cur = cur;
     this.edit = edit;
     this.text = text;
@@ -127,7 +97,71 @@ export class WriteCommand extends UndoableCommand {
     this.edit.deleteBetween(start, this.afterPos);
     if (this.deletedText)
       this.edit.insertAt(start, this.deletedText);
+
+    // SET PREVIOUS CURSOR
+    this.cur.copy(this.beforeCur);
+  }
+}
+
+export class BackspaceCommand extends UndoableCommand {
+  private cur: Cursor;
+  private edit: Editor;
+  private deletedText: string | null;
+  private beforeCur: Cursor | null;
+  private afterPos: Position | null;
+  constructor(cur: Cursor, edit: Editor) {
+    super(`Backspace`);
+    this.cur = cur;
+    this.edit = edit;
+    this.deletedText = null;
+    this.beforeCur = null;
+    this.afterPos = null;
+  }
+  execute(): void {
+    // INIT CURSOR POS
+    if (this.beforeCur)
+      this.cur.copy(this.beforeCur);
+    else
+      this.beforeCur = Cursor.from(this.cur);
+
+    // ORDER START END
+    let start = this.cur.getStart()
+    let end = this.cur.getEnd();
+    if (end.isBefore(start)) {
+      const tmp = start;
+      start = end;
+      end = tmp;
+    }
+
+    // DELETE SELECTION OR PREVIOUS CHAR
+    if (!this.cur.isSelection()) {
+      const x = start.getCol();
+      const y = start.getLine();
+      if (x > 0)
+        start = new Position(start.getLine(), start.getCol() - 1);
+      else if (y > 0)
+        start = this.edit.getEndLinePos(y - 1);
+    }
+    this.deletedText = this.edit.getBetween(start, end);
+    this.setName(`Backspace "${this.deletedText.replace(/\n/g, "\\n")}"`);
+    this.edit.deleteBetween(start, end);
     
+    // UPDATE CURSOR
+    this.cur.setStart(start);
+    this.cur.setEnd(start);
+    this.afterPos = this.cur.getStart()
+  }
+
+  undo(): void {
+    if (!this.beforeCur || !this.afterPos) {
+      console.error("undo called before execute")
+      return
+    }
+
+    // DELETE AND WRITE
+    if (this.deletedText !== null)
+      this.edit.insertAt(this.afterPos, this.deletedText);
+
     // SET PREVIOUS CURSOR
     this.cur.copy(this.beforeCur);
   }
@@ -145,23 +179,23 @@ export class DeleteCommand extends UndoableCommand {
     this.startPositon = this.cur.getStart();
   }
   execute(): void {
-    console.log('Delete ' + this.cur.getStart().toString());
-    if (this.cur.isSelection()) {
-      this.deletedText = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
-      this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
-      this.cur.setEnd(this.cur.getStart());
-    } else {
-      const curstartcol = this.cur.getStart().getCol();
-      const curstartrow = this.cur.getStart().getLine();
-      this.deletedText = this.edit.getBetween(this.cur.getStart(), this.edit.clampedPosition(new Position(curstartrow, curstartcol + 1)));
-      this.edit.deleteAfter(this.cur.getEnd());
-    }
+    // console.log('Delete ' + this.cur.getStart().toString());
+    // if (this.cur.isSelection()) {
+    //   this.deletedText = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
+    //   this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
+    //   this.cur.setEnd(this.cur.getStart());
+    // } else {
+    //   const curstartcol = this.cur.getStart().getCol();
+    //   const curstartrow = this.cur.getStart().getLine();
+    //   this.deletedText = this.edit.getBetween(this.cur.getStart(), this.edit.clampedPosition(new Position(curstartrow, curstartcol + 1)));
+    //   this.edit.deleteAfter(this.cur.getEnd());
+    // }
   }
 
   undo(): void {
     //TODO
-    console.log('Undo Delete ' + this.cur.getStart().toString());
-    this.edit.insertAt(this.startPositon, this.deletedText);
+    // console.log('Undo Delete ' + this.cur.getStart().toString());
+    // this.edit.insertAt(this.startPositon, this.deletedText);
   }
 }
 
@@ -180,22 +214,22 @@ export class PasteCommand extends UndoableCommand {
     this.endPosition = this.cur.getEnd();
   }
   execute(): void {
-    const clip = this.app.getClipboard();
-    console.log('Paste ' + this.cur.getStart().toString() + ' ' + clip);
-    if (this.cur.isSelection()) {
-      this.deletedText = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
-      this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
-      this.cur.setEnd(this.cur.getStart());
-    }
-    this.edit.insertAt(this.cur.getStart(), clip);
-    this.endPosition = this.cur.getEnd();
+    // const clip = this.app.getClipboard();
+    // console.log('Paste ' + this.cur.getStart().toString() + ' ' + clip);
+    // if (this.cur.isSelection()) {
+    //   this.deletedText = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
+    //   this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
+    //   this.cur.setEnd(this.cur.getStart());
+    // }
+    // this.edit.insertAt(this.cur.getStart(), clip);
+    // this.endPosition = this.cur.getEnd();
   }
 
   undo(): void {
-    //TODO
-    console.log('Undo Paste ' + this.cur.getStart().toString() + ' ' + this.app.getClipboard());
-    this.edit.deleteBetween(this.startPositon, this.endPosition);
-    this.edit.insertAt(this.startPositon, this.deletedText);
+    // //TODO
+    // console.log('Undo Paste ' + this.cur.getStart().toString() + ' ' + this.app.getClipboard());
+    // this.edit.deleteBetween(this.startPositon, this.endPosition);
+    // this.edit.insertAt(this.startPositon, this.deletedText);
   }
 }
 
@@ -210,10 +244,10 @@ export class CopyCommand extends Command {
     this.app = app;
   }
   execute(): void {
-    const newClip = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
-    console.log('Copy ' + this.cur.getStart().toString() + ' ' + this.cur.getEnd().toString() + ' ' + newClip);
+    // const newClip = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
+    // console.log('Copy ' + this.cur.getStart().toString() + ' ' + this.cur.getEnd().toString() + ' ' + newClip);
 
-    this.app.setClipboard(newClip);
+    // this.app.setClipboard(newClip);
   }
 }
 
@@ -226,9 +260,9 @@ export class MoveCursorCommand extends Command {
     this.pos = pos;
   }
   execute(): void {
-    console.log('MoveCursor ' + this.cur.getStart().toString() + ' ' + this.pos.toString());
-    this.cur.setStart(this.pos);
-    this.cur.setEnd(this.pos);
+    // console.log('MoveCursor ' + this.cur.getStart().toString() + ' ' + this.pos.toString());
+    // this.cur.setStart(this.pos);
+    // this.cur.setEnd(this.pos);
   }
 }
 
