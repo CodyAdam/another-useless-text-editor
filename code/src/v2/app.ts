@@ -4,7 +4,6 @@ import {
   MoveCursorCommand,
   MoveEndCursorCommand,
   MoveStartCursorCommand,
-  PasteCommand,
   DeleteCommand,
   WriteCommand,
   UndoableCommand
@@ -34,7 +33,7 @@ export class Application {
     command.execute();
   }
   onPaste(): void {
-    const command = new PasteCommand(this.cursor, this.editor, this)
+    const command = new WriteCommand(this.cursor, this.editor, this.clipboard)
     command.execute();
     this.addCommand(command);
     this.render();
@@ -78,6 +77,7 @@ export class Application {
     const deleteCommand = new DeleteCommand(this.cursor, this.editor)
     deleteCommand.execute();
     this.addCommand(deleteCommand);
+    this.render();
   }
 
   onUndo(): void {
@@ -94,17 +94,9 @@ export class Application {
     }
   }
 
-  private addCommand(command: UndoableCommand): void {
-    // remove all commands after the current index
-    this.history = this.history.slice(0, this.historyIndex);
-
-    // add the commend at the current index
-    this.history.push(command);
-    this.historyIndex++;
-  }
 
   // For the UI to draw the history
-  getFormatedHistory() { 
+  getFormatedHistory() {
     return this.history.map((command, index) => {
       return { name: command.getName(), done: index < this.historyIndex }
     })
@@ -114,22 +106,36 @@ export class Application {
   getEditor(): Editor {
     return this.editor;
   }
+
   getClipboard(): string {
     return this.clipboard;
   }
+
+  setClipboard(clip: string): void {
+    navigator.clipboard.writeText(clip);
+    this.clipboard = clip;
+  }
+  
   getCursor(): Cursor {
     return this.cursor;
   }
 
-  setClipboard(clip: string): void {
-    this.clipboard = clip;
-  }
 
   addRenderListener(listener: () => void): void {
     this.listeners.push(listener);
   }
   render(): void {
     this.listeners.forEach(listener => listener());
+  }
+
+
+  private addCommand(command: UndoableCommand): void {
+    // remove all commands after the current index
+    this.history = this.history.slice(0, this.historyIndex);
+
+    // add the commend at the current index
+    this.history.push(command);
+    this.historyIndex++;
   }
 }
 
