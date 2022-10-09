@@ -15,7 +15,6 @@ export class Cursor {
   constructor(start: Position = new Position(), end: Position = new Position()) {
     this.start = start;
     this.end = end;
-    console.log("Cursor loaded!");
   }
 
   isSelection(): boolean {
