@@ -80,6 +80,8 @@ class Main {
 
   public historyDom: HTMLElement | null;
 
+  public macro: { info: HTMLElement | null, start: HTMLElement | null, end: HTMLElement | null, play: HTMLElement | null }
+
   constructor() {
     // Init scene. 
     this.scene = new Scene();
@@ -193,6 +195,33 @@ class Main {
     this.app.onMoveStartCursor(new Position(0, 15));
     this.app.onMoveEndCursor(new Position(0, 8));
 
+    // MACROS
+    this.macro = {
+      info: null,
+      start: null,
+      end: null,
+      play: null,
+    }
+
+    this.macro.info = document.getElementById("macro-info")
+    this.macro.start = document.getElementById("macro-start")
+    this.macro.end = document.getElementById("macro-end")
+    this.macro.play = document.getElementById("macro-play")
+
+
+    this.macro.start?.addEventListener("click", () => {
+      this.app.onStartRecordingMacro();
+      this.updateMacroUI();
+    })
+    this.macro.end?.addEventListener("click", () => {
+      this.app.onStopRecordingMacro();
+      this.updateMacroUI();
+    })
+    this.macro.play?.addEventListener("click", () => {
+      this.app.onPlayMacro();
+      this.updateMacroUI();
+    })
+
     this.render();
     console.log(this);
   }
@@ -220,7 +249,6 @@ class Main {
     cursorFold.add(this.cursorStart.scale, 'y', .1, 5, .1).name('scale y').onChange(() => { this.cursorEnd.scale.y = this.cursorStart.scale.y; this.render() });
     cursorFold.add(this.cursorStart.scale, 'z', 1, 5, .1).name('scale z').onChange(() => { this.cursorEnd.scale.z = this.cursorStart.scale.z; this.render() });
     cursorFold.add(this, "animateCursor").name('animate').onChange(() => this.render());
-    cursorFold.open();
     const cameraFold = this.gui.addFolder("Camera");
     cameraFold.add({
       reset: () => {
@@ -232,10 +260,8 @@ class Main {
       }
     }, "reset").name('reset position').onChange(() => this.render())
     cameraFold.add(this, "autoMove").name('automatic').onChange(() => this.render());
-    cameraFold.open();
     const selectionFold = this.gui.addFolder("Selection");
     selectionFold.add(this, "animateSelection").name('animate').onChange(() => this.render());
-    selectionFold.open();
   }
 
 
@@ -322,6 +348,7 @@ class Main {
       else
         this.app.onWrite(e.key);
     }
+    this.updateMacroUI();
   }
 
   /** Renders the scene */
@@ -362,6 +389,7 @@ class Main {
           this.text.delete(pos);
         }
       });
+
     }
 
     //Update the cursor
@@ -383,11 +411,15 @@ class Main {
     if (!this.animateSelection) {
       this.text.forEach((char, pos) => {
         if (this.isSelected(pos)) {
-          char.mesh.rotation.set(-.2, -0.1, - 0.1);
+          const posOffset = + 10 * Math.sin(char.mesh.position.x / 100 + char.mesh.position.y / 100);
+          char.mesh.position.setY(-pos.getLine() * H + posOffset);
+          const rotationOffset = 0.1 * Math.sin(char.mesh.position.x / 100);
+          char.mesh.rotation.set(rotationOffset, rotationOffset, rotationOffset);
           const material = new MeshPhongMaterial();
           char.mesh.material = material;
         }
         else {
+          char.mesh.position.setY(-pos.getLine() * H);
           char.mesh.rotation.set(0, 0, 0);
           char.mesh.material = new MeshNormalMaterial();
         }
@@ -400,9 +432,9 @@ class Main {
       let text = "";
       history.forEach((command, index) => {
         if (command.done)
-          text += command.name + "<br/>";
+          text += command.name.substring(0, 30) + (command.name.length > 29 ? "..." : "") + "<br/>";
         else
-          text += `<span class=\"text-gray-500\">${command.name}</span><br/>`
+          text += `<span class=\"text-gray-500\">${command.name.substring(0, 30) + (command.name.length > 29 ? "..." : "")}</span><br/>`
       })
       this.historyDom.innerHTML = text;
     }
@@ -527,6 +559,24 @@ class Main {
       end = tmp;
     }
     return (pos.isAfter(start) || pos.isEqual(start)) && (pos.isBefore(end));
+  }
+
+  private updateMacroUI() {
+    if (!this.macro || !this.macro.info || !this.macro.start || !this.macro.end) return;
+    const { isRecording, length } = this.app.getMacroInfo();
+    if (!isRecording) {
+      if (length == 0) {
+        this.macro.info.innerHTML = "No macro recorded";
+      } else if (length > 0) {
+        this.macro.info.innerHTML = `Current macro has ${length} commands`;
+      }
+      this.macro.end.style.display = "none";
+      this.macro.start.style.display = "block";
+    } else {
+      this.macro.info.innerHTML = `Recording macro... ${length} commands`;
+      this.macro.end.style.display = "block";
+      this.macro.start.style.display = "none";
+    }
   }
 }
 
