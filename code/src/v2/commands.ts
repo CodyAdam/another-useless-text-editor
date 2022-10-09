@@ -145,7 +145,7 @@ export class BackspaceCommand extends UndoableCommand {
     this.deletedText = this.edit.getBetween(start, end);
     this.setName(`Backspace "${this.deletedText.replace(/\n/g, "\\n")}"`);
     this.edit.deleteBetween(start, end);
-    
+
     // UPDATE CURSOR
     this.cur.setStart(start);
     this.cur.setEnd(start);
@@ -171,31 +171,64 @@ export class BackspaceCommand extends UndoableCommand {
 export class DeleteCommand extends UndoableCommand {
   private cur: Cursor;
   private edit: Editor;
-  private startPositon: Position;
+  private deletedText: string | null;
+  private beforeCur: Cursor | null;
+  private afterPos: Position | null;
   constructor(cur: Cursor, edit: Editor) {
-    super('Delete');
+    super(`Delete`);
     this.cur = cur;
     this.edit = edit;
-    this.startPositon = this.cur.getStart();
+    this.deletedText = null;
+    this.beforeCur = null;
+    this.afterPos = null;
   }
   execute(): void {
-    // console.log('Delete ' + this.cur.getStart().toString());
-    // if (this.cur.isSelection()) {
-    //   this.deletedText = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
-    //   this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
-    //   this.cur.setEnd(this.cur.getStart());
-    // } else {
-    //   const curstartcol = this.cur.getStart().getCol();
-    //   const curstartrow = this.cur.getStart().getLine();
-    //   this.deletedText = this.edit.getBetween(this.cur.getStart(), this.edit.clampedPosition(new Position(curstartrow, curstartcol + 1)));
-    //   this.edit.deleteAfter(this.cur.getEnd());
-    // }
+    // INIT CURSOR POS
+    if (this.beforeCur)
+      this.cur.copy(this.beforeCur);
+    else
+      this.beforeCur = Cursor.from(this.cur);
+
+    // ORDER START END
+    let start = this.cur.getStart()
+    let end = this.cur.getEnd();
+    if (end.isBefore(start)) {
+      const tmp = start;
+      start = end;
+      end = tmp;
+    }
+
+    // DELETE SELECTION OR PREVIOUS CHAR
+    if (!this.cur.isSelection()) {
+      const x = start.getCol();
+      const y = start.getLine();
+      if (x < this.edit.getEndLinePos(y).getCol())
+        end = new Position(start.getLine(), start.getCol() + 1);
+      else if (y < this.edit.getLineCount() - 1)
+        end = this.edit.getStartLinePos(y + 1);
+    }
+    this.deletedText = this.edit.getBetween(start, end);
+    this.setName(`Delete "${this.deletedText.replace(/\n/g, "\\n")}"`);
+    this.edit.deleteBetween(start, end);
+
+    // UPDATE CURSOR
+    this.cur.setStart(start);
+    this.cur.setEnd(start);
+    this.afterPos = this.cur.getStart()
   }
 
   undo(): void {
-    //TODO
-    // console.log('Undo Delete ' + this.cur.getStart().toString());
-    // this.edit.insertAt(this.startPositon, this.deletedText);
+    if (!this.beforeCur || !this.afterPos) {
+      console.error("undo called before execute")
+      return
+    }
+
+    // DELETE AND WRITE
+    if (this.deletedText !== null)
+      this.edit.insertAt(this.afterPos, this.deletedText);
+
+    // SET PREVIOUS CURSOR
+    this.cur.copy(this.beforeCur);
   }
 }
 
