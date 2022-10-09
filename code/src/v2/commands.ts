@@ -232,39 +232,6 @@ export class DeleteCommand extends UndoableCommand {
   }
 }
 
-export class PasteCommand extends UndoableCommand {
-  private cur: Cursor;
-  private edit: Editor;
-  private app: Application;
-  private startPositon: Position;
-  private endPosition: Position;
-  constructor(cur: Cursor, edit: Editor, app: Application) {
-    super('Paste');
-    this.cur = cur;
-    this.edit = edit;
-    this.app = app;
-    this.startPositon = this.cur.getStart();
-    this.endPosition = this.cur.getEnd();
-  }
-  execute(): void {
-    // const clip = this.app.getClipboard();
-    // console.log('Paste ' + this.cur.getStart().toString() + ' ' + clip);
-    // if (this.cur.isSelection()) {
-    //   this.deletedText = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
-    //   this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
-    //   this.cur.setEnd(this.cur.getStart());
-    // }
-    // this.edit.insertAt(this.cur.getStart(), clip);
-    // this.endPosition = this.cur.getEnd();
-  }
-
-  undo(): void {
-    // //TODO
-    // console.log('Undo Paste ' + this.cur.getStart().toString() + ' ' + this.app.getClipboard());
-    // this.edit.deleteBetween(this.startPositon, this.endPosition);
-    // this.edit.insertAt(this.startPositon, this.deletedText);
-  }
-}
 
 export class CopyCommand extends Command {
   private cur: Cursor;
@@ -277,10 +244,9 @@ export class CopyCommand extends Command {
     this.app = app;
   }
   execute(): void {
-    // const newClip = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
-    // console.log('Copy ' + this.cur.getStart().toString() + ' ' + this.cur.getEnd().toString() + ' ' + newClip);
+    const newClip = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
 
-    // this.app.setClipboard(newClip);
+    this.app.setClipboard(newClip);
   }
 }
 
@@ -293,9 +259,8 @@ export class MoveCursorCommand extends Command {
     this.pos = pos;
   }
   execute(): void {
-    // console.log('MoveCursor ' + this.cur.getStart().toString() + ' ' + this.pos.toString());
-    // this.cur.setStart(this.pos);
-    // this.cur.setEnd(this.pos);
+    this.cur.setStart(this.pos);
+    this.cur.setEnd(this.pos);
   }
 }
 
@@ -308,7 +273,6 @@ export class MoveStartCursorCommand extends Command {
     this.pos = pos;
   }
   execute(): void {
-    console.log('MoveStartCursor ' + this.cur.getStart().toString() + ' ' + this.pos.toString());
     this.cur.setStart(this.pos);
   }
 }
@@ -322,7 +286,6 @@ export class MoveEndCursorCommand extends Command {
     this.pos = pos;
   }
   execute(): void {
-    console.log('MoveEndCursor ' + this.cur.getEnd().toString() + ' ' + this.pos.toString());
     this.cur.setEnd(this.pos);
   }
 }
