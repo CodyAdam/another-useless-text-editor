@@ -6,7 +6,8 @@ import {
   MoveStartCursorCommand,
   DeleteCommand,
   WriteCommand,
-  UndoableCommand
+  UndoableCommand,
+  Command
 } from './commands';
 import { Cursor } from './cursor';
 import { Editor } from './editor';
@@ -14,14 +15,15 @@ import { Position } from './position';
 
 export class Application {
   private editor: Editor;
-  private clipboard: string;
+  private clipboard: string = "";
   private cursor: Cursor;
   private listeners: (() => void)[] = []; // called on render (used for the UI)
   private history: UndoableCommand[] = [];
   private historyIndex: number = 0;
+  private macro: Command[] = [];
+  private isRecordingMacro: boolean;
   constructor() {
     console.log("\nLoading application...");
-    this.clipboard = "";
     this.cursor = new Cursor();
     this.editor = new Editor();
     this.render();
@@ -30,53 +32,73 @@ export class Application {
 
   onCopy(): void {
     const command = new CopyCommand(this.cursor, this.editor, this)
+    if (this.isRecordingMacro)
+      this.macro.push(command)
     command.execute();
   }
   onPaste(): void {
     const command = new WriteCommand(this.cursor, this.editor, this.clipboard)
+    if (this.isRecordingMacro)
+      this.macro.push(command)
     command.execute();
-    this.addCommand(command);
+    this.addToHistory(command);
     this.render();
   }
   onWrite(text: string): void {
     const command = new WriteCommand(this.cursor, this.editor, text)
+    if (this.isRecordingMacro)
+      this.macro.push(command)
     command.execute();
-    this.addCommand(command);
+    this.addToHistory(command);
     this.render();
   }
   onBackspace(): void {
     const command = new BackspaceCommand(this.cursor, this.editor)
+    if (this.isRecordingMacro)
+      this.macro.push(command)
     command.execute();
-    this.addCommand(command);
+    this.addToHistory(command);
     this.render();
   }
   onDelete(): void {
     const command = new DeleteCommand(this.cursor, this.editor)
+    if (this.isRecordingMacro)
+      this.macro.push(command)
     command.execute();
-    this.addCommand(command);
+    this.addToHistory(command);
     this.render();
   }
   onMoveCursor(pos: Position): void {
     const command = new MoveCursorCommand(this.cursor, this.editor.clampedPosition(pos))
+    if (this.isRecordingMacro)
+      this.macro.push(command)
     command.execute();
     this.render();
   }
   onMoveStartCursor(pos: Position): void {
     const command = new MoveStartCursorCommand(this.cursor, this.editor.clampedPosition(pos))
+    if (this.isRecordingMacro)
+      this.macro.push(command)
     command.execute();
     this.render();
   }
   onMoveEndCursor(pos: Position): void {
     const command = new MoveEndCursorCommand(this.cursor, this.editor.clampedPosition(pos))
+    if (this.isRecordingMacro)
+      this.macro.push(command)
     command.execute();
     this.render();
   }
   onCut(): void {
     const copyCommand = new CopyCommand(this.cursor, this.editor, this)
+    if (this.isRecordingMacro)
+      this.macro.push(copyCommand)
     copyCommand.execute();
     const deleteCommand = new DeleteCommand(this.cursor, this.editor)
+    if (this.isRecordingMacro)
+      this.macro.push(deleteCommand)
     deleteCommand.execute();
-    this.addCommand(deleteCommand);
+    this.addToHistory(deleteCommand);
     this.render();
   }
 
@@ -92,6 +114,24 @@ export class Application {
       this.history[this.historyIndex++].execute();
       this.render();
     }
+  }
+
+  onStartRecordingMacro(): void {
+    this.macro = [];
+    this.isRecordingMacro = true;
+  }
+
+  onStopRecordingMacro(): void {
+    this.isRecordingMacro = false;
+  }
+
+  onPlayMacro(): void {
+    this.macro.forEach(command => {
+      if (command instanceof UndoableCommand)
+        this.addToHistory(command);
+      command.execute()
+    });
+    this.render();
   }
 
 
@@ -115,7 +155,7 @@ export class Application {
     navigator.clipboard.writeText(clip);
     this.clipboard = clip;
   }
-  
+
   getCursor(): Cursor {
     return this.cursor;
   }
@@ -129,7 +169,7 @@ export class Application {
   }
 
 
-  private addCommand(command: UndoableCommand): void {
+  private addToHistory(command: UndoableCommand): void {
     // remove all commands after the current index
     this.history = this.history.slice(0, this.historyIndex);
 

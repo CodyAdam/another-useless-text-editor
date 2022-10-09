@@ -3,7 +3,7 @@ import { Cursor } from './cursor';
 import { Editor } from './editor';
 import { Position } from './position';
 
-abstract class Command {
+export abstract class Command {
   private name: string;
   constructor(name: string) {
     this.name = name;
