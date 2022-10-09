@@ -1,4 +1,5 @@
 # I. Introduction
+
 Dans ce TP, nous allons nous pencher sur la conception d'un editeur de texte. Avant de nous jeter dans la programmation, nous étudierons le fonctionnement d'un éditeur de texte. Nous verrons quelles sont ses fonctionnalités principales, leurs attributs et leur agencement en classe. Puis nous regarderons les différentes intéractions entre-elles et les différents états de l'éditeur. Pour nous permettre d'avoir enfin un code le plus compréhensible, organisé et modulaire possible.
 
 # II. Cahier des charges
@@ -28,7 +29,7 @@ Avec notre cahier des charges nous définissons ensuite les différents graphiqu
 - Diagramme séquence
 - Diagramme d'état
 
-# III. Diagrammes UML et conception de la V1 
+# III. Plannification et implémentation de la v1.0
 
 ## III.1 Diagramme de classe
 
@@ -59,25 +60,20 @@ skinparam classAttributeIconSize 0
     }
 
     class Editor {
-        -cur: Cursor
         -content: List<String>
-        +Editor(cur: Cursor)
+        +Editor()
         +deleteBetween(start: Position, end: Position): void
-        +deleteBefore(pos: Position): void
-        +deleteAfter(pos: Position): void
-        +insertAt(pos: Position, text: String): void
         +getBetween(start: Position, end: Position): String
-        +getEndLine(pos: Position): Position
-        +getStartLine(pos: Position): Position
-        +getLineCount(): int
+        +insertAt(pos: Position, text: String): void
         +getContent(): List<String>
-        +clampedPosition(pos: Position): Position
     }
 
     Abstract Command{
+        -name: String
         +Command()
         +execute(): void
         +getName(): String
+        +setName(): void
     }
     
     class Cursor{
@@ -381,7 +377,7 @@ Nous fabriquons ensuite l'interface graphique de notre éditeur de texte en util
 
 Vous retrouverez les instructions pour lancer le projet dans le fichier **README.md** du projet ou lancer la version en ligne [ici](https://editor.codyadm.com/).
 
-# IV. Diagrammes UML et conception de la V2
+# IV. Réorganisation, et implémention de la v2.0
 
 Nous avons maintenant une version 1 du projet parfaitement opérationelle. Qui a une architecture oraganisée et modulaire, ainsi qu'une interface graphique permettant à l'utilisateur de se servir des différentes commandes.
 

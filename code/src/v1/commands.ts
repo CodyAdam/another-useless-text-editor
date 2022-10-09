@@ -3,7 +3,7 @@ import { Cursor } from './cursor';
 import { Editor } from './editor';
 import { Position } from './position';
 
-abstract class Command {
+export abstract class Command {
   private name: string;
   constructor(name: string) {
     this.name = name;
@@ -14,24 +14,8 @@ abstract class Command {
   getName(): string {
     return this.name;
   }
-}
-
-export class BackspaceCommand extends Command {
-  private cur: Cursor;
-  private edit: Editor;
-  constructor(cur: Cursor, edit: Editor) {
-    super('Delete');
-    this.cur = cur;
-    this.edit = edit;
-  }
-  execute(): void {
-    console.log('Backspace ' + this.cur.getStart().toString());
-    if (this.cur.isSelection()){
-      this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
-      this.cur.setEnd(this.cur.getStart());
-    } else {
-      this.edit.deleteBefore(this.cur.getStart());
-    }
+  setName(name: string): void {
+    this.name = name;
   }
 }
 
@@ -40,20 +24,119 @@ export class WriteCommand extends Command {
   private cur: Cursor;
   private edit: Editor;
   constructor(cur: Cursor, edit: Editor, text: string) {
-    super('Write');
+    super(`${text.length>1 ? "Paste": "Write"} "${text.replace(/\n/g, "\\n")}"`);
     this.cur = cur;
     this.edit = edit;
     this.text = text;
   }
   execute(): void {
-    console.log('Write ' + this.cur.getStart().toString() + ' ' + this.text);
-    if (this.cur.isSelection()) {
-      this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
-      this.cur.setEnd(this.cur.getStart());
+    // ORDER START END
+    let start = this.cur.getStart()
+    let end = this.cur.getEnd();
+    if (end.isBefore(start)) {
+      const tmp = start;
+      start = end;
+      end = tmp;
     }
+
+    // DELETE SELECTION
+    if (this.cur.isSelection()) {
+      this.edit.deleteBetween(start, end);
+      this.cur.setEnd(start);
+    }
+
+    // WHRITE
+    const textByLines = this.text.split("\n");
     this.edit.insertAt(this.cur.getStart(), this.text);
+
+    //MOVE CURSOR
+    if (textByLines.length == 1)
+      this.cur.setStart(new Position(start.getLine(), start.getCol() + textByLines[0].length))
+    else
+      this.cur.setStart(new Position(start.getLine() + textByLines.length - 1, textByLines[textByLines.length - 1].length))
+    this.cur.setEnd(this.cur.getStart())
   }
 }
+
+export class BackspaceCommand extends Command {
+  private cur: Cursor;
+  private edit: Editor;
+  private deletedText: string | null;
+  constructor(cur: Cursor, edit: Editor) {
+    super(`Delete`);
+    this.cur = cur;
+    this.edit = edit;
+    this.deletedText = null;
+  }
+  execute(): void {
+    // ORDER START END
+    let start = this.cur.getStart()
+    let end = this.cur.getEnd();
+    if (end.isBefore(start)) {
+      const tmp = start;
+      start = end;
+      end = tmp;
+    }
+
+    // DELETE SELECTION OR PREVIOUS CHAR
+    if (!this.cur.isSelection()) {
+      const x = start.getCol();
+      const y = start.getLine();9
+      if (x > 0)
+        start = new Position(start.getLine(), start.getCol() - 1);
+      else if (y > 0)
+        start = this.edit.getEndLinePos(y - 1);
+    }
+    this.deletedText = this.edit.getBetween(start, end);
+    this.setName(`Delete "${this.deletedText.replace(/\n/g, "\\n")}"`);
+    this.edit.deleteBetween(start, end);
+
+    // UPDATE CURSOR
+    this.cur.setStart(start);
+    this.cur.setEnd(start);
+  }
+}
+
+
+export class DeleteCommand extends Command {
+  private cur: Cursor;
+  private edit: Editor;
+  private deletedText: string | null;
+  constructor(cur: Cursor, edit: Editor) {
+    super(`Delete`);
+    this.cur = cur;
+    this.edit = edit;
+    this.deletedText = null;
+  }
+  execute(): void {
+    // ORDER START END
+    let start = this.cur.getStart()
+    let end = this.cur.getEnd();
+    if (end.isBefore(start)) {
+      const tmp = start;
+      start = end;
+      end = tmp;
+    }
+
+    // DELETE SELECTION OR PREVIOUS CHAR
+    if (!this.cur.isSelection()) {
+      const x = start.getCol();
+      const y = start.getLine();
+      if (x < this.edit.getEndLinePos(y).getCol())
+        end = new Position(start.getLine(), start.getCol() + 1);
+      else if (y < this.edit.getLineCount() - 1)
+        end = this.edit.getStartLinePos(y + 1);
+    }
+    this.deletedText = this.edit.getBetween(start, end);
+    this.setName(`Delete "${this.deletedText.replace(/\n/g, "\\n")}"`);
+    this.edit.deleteBetween(start, end);
+
+    // UPDATE CURSOR
+    this.cur.setStart(start);
+    this.cur.setEnd(start);
+  }
+}
+
 
 export class CopyCommand extends Command {
   private cur: Cursor;
@@ -67,30 +150,8 @@ export class CopyCommand extends Command {
   }
   execute(): void {
     const newClip = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
-    console.log('Copy ' + this.cur.getStart().toString() + ' ' + this.cur.getEnd().toString() + ' ' + newClip);
-    
+    this.setName(`Copy "${newClip}"`)
     this.app.setClipboard(newClip);
-  }
-}
-
-export class PasteCommand extends Command {
-  private cur: Cursor;
-  private edit: Editor;
-  private app: Application;
-  constructor(cur: Cursor, edit: Editor, app: Application) {
-    super('Paste');
-    this.cur = cur;
-    this.edit = edit;
-    this.app = app;
-  }
-  execute(): void {
-    const clip = this.app.getClipboard();
-    console.log('Paste ' + this.cur.getStart().toString() + ' ' + clip);
-    if (this.cur.isSelection()) {
-      this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
-      this.cur.setEnd(this.cur.getStart());
-    }
-    this.edit.insertAt(this.cur.getStart(), clip);
   }
 }
 
@@ -98,33 +159,14 @@ export class MoveCursorCommand extends Command {
   private cur: Cursor;
   private pos: Position;
   constructor(cur: Cursor, pos: Position) {
-    super('MoveCursor');
+    super('Move cursor');
     this.cur = cur;
     this.pos = pos;
   }
   execute(): void {
-    console.log('MoveCursor ' + this.cur.getStart().toString() + ' ' + this.pos.toString());
     this.cur.setStart(this.pos);
     this.cur.setEnd(this.pos);
-  }
-}
-
-export class DeleteCommand extends Command {
-  private cur: Cursor;
-  private edit: Editor;
-  constructor(cur: Cursor, edit: Editor) {
-    super('Delete');
-    this.cur = cur;
-    this.edit = edit;
-  }
-  execute(): void {
-    console.log('Delete ' + this.cur.getStart().toString());
-    if (this.cur.isSelection()) {
-      this.edit.deleteBetween(this.cur.getStart(), this.cur.getEnd());
-      this.cur.setEnd(this.cur.getStart());
-    } else {
-      this.edit.deleteAfter(this.cur.getEnd());
-    }
+    this.setName(`Move to ${this.pos.toString()}`)
   }
 }
 
@@ -132,13 +174,13 @@ export class MoveStartCursorCommand extends Command {
   private pos: Position;
   private cur: Cursor;
   constructor(cur: Cursor, pos: Position) {
-    super('MoveStartCursor');
+    super('Move start cursor');
     this.cur = cur;
     this.pos = pos;
   }
   execute(): void {
-    console.log('MoveStartCursor ' + this.cur.getStart().toString() + ' ' + this.pos.toString());
     this.cur.setStart(this.pos);
+    this.setName(`Move to ${this.pos.toString()}`)
   }
 }
 
@@ -146,12 +188,12 @@ export class MoveEndCursorCommand extends Command {
   private pos: Position;
   private cur: Cursor;
   constructor(cur: Cursor, pos: Position) {
-    super('MoveEndCursor');
+    super('Move end cursor');
     this.cur = cur;
     this.pos = pos;
   }
   execute(): void {
-    console.log('MoveEndCursor ' + this.cur.getEnd().toString() + ' ' + this.pos.toString());
     this.cur.setEnd(this.pos);
+    this.setName(`Move end to ${this.pos.toString()}`)
   }
 }

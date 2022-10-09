@@ -4,9 +4,8 @@ import {
   MoveCursorCommand,
   MoveEndCursorCommand,
   MoveStartCursorCommand,
-  PasteCommand,
   DeleteCommand,
-  WriteCommand
+  WriteCommand,
 } from './commands';
 import { Cursor } from './cursor';
 import { Editor } from './editor';
@@ -14,14 +13,13 @@ import { Position } from './position';
 
 export class Application {
   private editor: Editor;
-  private clipboard: string;
+  private clipboard: string = "";
   private cursor: Cursor;
   private listeners: (() => void)[] = []; // called on render (used for the UI)
   constructor() {
     console.log("\nLoading application...");
-    this.clipboard = "";
     this.cursor = new Cursor();
-    this.editor = new Editor(this.cursor);
+    this.editor = new Editor();
     this.render();
     console.log("Application successfully loaded!\n\n");
   }
@@ -31,7 +29,7 @@ export class Application {
     command.execute();
   }
   onPaste(): void {
-    const command = new PasteCommand(this.cursor, this.editor, this)
+    const command = new WriteCommand(this.cursor, this.editor, this.clipboard)
     command.execute();
     this.render();
   }
@@ -66,23 +64,28 @@ export class Application {
     this.render();
   }
   onCut(): void {
-    this.onCopy()
-    this.onDelete()
+    const copyCommand = new CopyCommand(this.cursor, this.editor, this)
+    copyCommand.execute();
+    const deleteCommand = new DeleteCommand(this.cursor, this.editor)
+    deleteCommand.execute();
+    this.render();
   }
 
-  // GETTERS
   getEditor(): Editor {
     return this.editor;
   }
+
   getClipboard(): string {
     return this.clipboard;
   }
-  getCursor(): Cursor {
-    return this.cursor;
-  }
 
   setClipboard(clip: string): void {
+    navigator.clipboard.writeText(clip);
     this.clipboard = clip;
+  }
+
+  getCursor(): Cursor {
+    return this.cursor;
   }
 
   addRenderListener(listener: () => void): void {
@@ -91,5 +94,5 @@ export class Application {
   render(): void {
     this.listeners.forEach(listener => listener());
   }
-}
 
+}

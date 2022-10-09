@@ -34,7 +34,7 @@ export class WriteCommand extends UndoableCommand {
   private beforeCur: Cursor | null;
   private afterPos: Position | null;
   constructor(cur: Cursor, edit: Editor, text: string) {
-    super(`Write "${text.replace(/\n/g, "\\n")}"`);
+    super(`${text.length > 1 ? "Paste" : "Write"} "${text.replace(/\n/g, "\\n")}"`);
     this.cur = cur;
     this.edit = edit;
     this.text = text;
@@ -110,7 +110,7 @@ export class BackspaceCommand extends UndoableCommand {
   private beforeCur: Cursor | null;
   private afterPos: Position | null;
   constructor(cur: Cursor, edit: Editor) {
-    super(`Backspace`);
+    super(`Delete`);
     this.cur = cur;
     this.edit = edit;
     this.deletedText = null;
@@ -143,7 +143,7 @@ export class BackspaceCommand extends UndoableCommand {
         start = this.edit.getEndLinePos(y - 1);
     }
     this.deletedText = this.edit.getBetween(start, end);
-    this.setName(`Backspace "${this.deletedText.replace(/\n/g, "\\n")}"`);
+    this.setName(`Delete "${this.deletedText.replace(/\n/g, "\\n")}"`);
     this.edit.deleteBetween(start, end);
 
     // UPDATE CURSOR

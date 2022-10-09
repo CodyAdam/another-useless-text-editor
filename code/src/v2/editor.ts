@@ -1,4 +1,3 @@
-import { Cursor } from './cursor';
 import { Position } from './position';
 
 export class Editor {
