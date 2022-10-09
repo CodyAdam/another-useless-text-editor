@@ -245,7 +245,7 @@ export class CopyCommand extends Command {
   }
   execute(): void {
     const newClip = this.edit.getBetween(this.cur.getStart(), this.cur.getEnd());
-
+    this.setName(`Copy "${newClip}"`)
     this.app.setClipboard(newClip);
   }
 }
@@ -254,13 +254,14 @@ export class MoveCursorCommand extends Command {
   private cur: Cursor;
   private pos: Position;
   constructor(cur: Cursor, pos: Position) {
-    super('MoveCursor');
+    super('Move cursor');
     this.cur = cur;
     this.pos = pos;
   }
   execute(): void {
     this.cur.setStart(this.pos);
     this.cur.setEnd(this.pos);
+    this.setName(`Move to ${this.pos.toString()}`)
   }
 }
 
@@ -268,12 +269,13 @@ export class MoveStartCursorCommand extends Command {
   private pos: Position;
   private cur: Cursor;
   constructor(cur: Cursor, pos: Position) {
-    super('MoveStartCursor');
+    super('Move start cursor');
     this.cur = cur;
     this.pos = pos;
   }
   execute(): void {
     this.cur.setStart(this.pos);
+    this.setName(`Move to ${this.pos.toString()}`)
   }
 }
 
@@ -281,11 +283,12 @@ export class MoveEndCursorCommand extends Command {
   private pos: Position;
   private cur: Cursor;
   constructor(cur: Cursor, pos: Position) {
-    super('MoveEndCursor');
+    super('Move end cursor');
     this.cur = cur;
     this.pos = pos;
   }
   execute(): void {
     this.cur.setEnd(this.pos);
+    this.setName(`Move end to ${this.pos.toString()}`)
   }
 }

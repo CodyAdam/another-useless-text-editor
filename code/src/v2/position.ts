@@ -13,7 +13,7 @@ export class Position {
   }
 
   toString() {
-    return `(y:${this.line}, x:${this.col})`;
+    return `(line: ${this.line}, col: ${this.col})`;
   }
 
   isAfter(other: Position) {

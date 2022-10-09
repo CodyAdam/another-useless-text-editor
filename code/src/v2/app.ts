@@ -162,8 +162,8 @@ export class Application {
 
   getMacroInfo() {
     console.log(this.macro.length);
-    
-    return { isRecording: this.isRecordingMacro, length: this.macro.length }
+
+    return { isRecording: this.isRecordingMacro, length: this.macro.length, list: this.macro.map(command => command.getName()) }
   }
 
   addRenderListener(listener: () => void): void {

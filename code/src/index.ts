@@ -80,7 +80,7 @@ class Main {
 
   public historyDom: HTMLElement | null;
 
-  public macro: { info: HTMLElement | null, start: HTMLElement | null, end: HTMLElement | null, play: HTMLElement | null }
+  public macro: { info: HTMLElement | null, start: HTMLElement | null, end: HTMLElement | null, play: HTMLElement | null, list: HTMLElement | null }
 
   constructor() {
     // Init scene. 
@@ -201,12 +201,14 @@ class Main {
       start: null,
       end: null,
       play: null,
+      list: null,
     }
 
     this.macro.info = document.getElementById("macro-info")
     this.macro.start = document.getElementById("macro-start")
     this.macro.end = document.getElementById("macro-end")
     this.macro.play = document.getElementById("macro-play")
+    this.macro.list = document.getElementById("macro")
 
 
     this.macro.start?.addEventListener("click", () => {
@@ -562,8 +564,8 @@ class Main {
   }
 
   private updateMacroUI() {
-    if (!this.macro || !this.macro.info || !this.macro.start || !this.macro.end) return;
-    const { isRecording, length } = this.app.getMacroInfo();
+    if (!this.macro || !this.macro.list || !this.macro.info || !this.macro.start || !this.macro.end) return;
+    const { isRecording, length, list } = this.app.getMacroInfo();
     if (!isRecording) {
       if (length == 0) {
         this.macro.info.innerHTML = "No macro recorded";
@@ -577,7 +579,14 @@ class Main {
       this.macro.end.style.display = "block";
       this.macro.start.style.display = "none";
     }
+    let text = "";
+    list.reverse();
+    list.forEach((name, index) => {
+      text += `${name.substring(0, 30) + (name.length > 29 ? "..." : "")}<br/>`
+    })
+    this.macro.list.innerHTML = text;
   }
+
 }
 
 new Main();
