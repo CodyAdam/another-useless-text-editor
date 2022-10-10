@@ -430,7 +430,6 @@ skinparam classAttributeIconSize 0
     }
 
     class Editor {
-        -cur: Cursor
         -content: List<String>
         +Editor(cur: Cursor)
         +deleteBetween(start: Position, end: Position): void
@@ -446,9 +445,11 @@ skinparam classAttributeIconSize 0
     }
 
     Abstract Command{
+        -name: String
         +Command(name: String)
         +execute(): void
         +getName(): String
+        +setName(name: String): void
     }
 
     Abstract UndoableCommand{
