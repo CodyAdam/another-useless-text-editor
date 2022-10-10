@@ -1,3 +1,22 @@
+- [I. Introduction](#i-introduction)
+- [II. Cahier des charges](#ii-cahier-des-charges)
+  - [Cahier des charges:](#cahier-des-charges)
+    - [V1](#v1)
+    - [V2](#v2)
+  - [Plan](#plan)
+- [III. Plannification et implémentation de la v1.0](#iii-plannification-et-implémentation-de-la-v10)
+  - [III.1 Diagramme de classe](#iii1-diagramme-de-classe)
+  - [III.2 Diagramme séquence](#iii2-diagramme-séquence)
+  - [III.3 Diagramme d'état](#iii3-diagramme-détat)
+  - [III.4 Implémentation de l'éditeur](#iii4-implémentation-de-léditeur)
+  - [III.5 Changements apportés](#iii5-changements-apportés)
+- [IV. Réorganisation, et implémention de la v2.0](#iv-réorganisation-et-implémention-de-la-v20)
+  - [IV.1 Diagramme de classes](#iv1-diagramme-de-classes)
+  - [IV.2 Diagramme de séquence](#iv2-diagramme-de-séquence)
+  - [IV.3 Diagramme d'état](#iv3-diagramme-détat)
+  - [IV.4 Implémentation de l'éditeur](#iv4-implémentation-de-léditeur)
+- [V. Conclusion](#v-conclusion)
+
 # I. Introduction
 
 Dans ce TP, nous allons nous pencher sur la conception d'un editeur de texte. Avant de nous jeter dans la programmation, nous étudierons le fonctionnement d'un éditeur de texte. Nous verrons quelles sont ses fonctionnalités principales, leurs attributs et leur agencement en classe. Puis nous regarderons les différentes intéractions entre-elles et les différents états de l'éditeur. Pour nous permettre d'avoir enfin un code le plus compréhensible, organisé et modulaire possible.
@@ -43,6 +62,7 @@ skinparam classAttributeIconSize 0
         -editor: Editor
         -clipboard: String
         -cursor: Cursor
+        -listeners: Array<()=>void>
         +Application()
         +onCopy(): void
         +onPaste(): void
@@ -56,16 +76,17 @@ skinparam classAttributeIconSize 0
         +getCursor(): Cursor
         +getClipboard(): String
         +getEditor(): Editor
+        +addRenderListener(listener: ()=>void): void
         -render(): void
     }
 
     class Editor {
-        -content: List<String>
+        -content: Array<String>
         +Editor()
         +deleteBetween(start: Position, end: Position): void
         +getBetween(start: Position, end: Position): String
         +insertAt(pos: Position, text: String): void
-        +getContent(): List<String>
+        +getContent(): Array<String>
     }
 
     Abstract Command{
@@ -93,9 +114,6 @@ skinparam classAttributeIconSize 0
         +Position(line: int, col: int)
         +getCol(): int
         +getLine(): int
-        +isAfter(other: Position): boolean
-        +isBefore(other: Position): boolean
-        +isEqual(other: Position): boolean
     }
 
     class WriteCommand {
@@ -152,18 +170,26 @@ skinparam classAttributeIconSize 0
 
     Cursor "1" <--* "1" Application
     
-    Command <|-- PasteCommand 
-    Command <|-- WriteCommand 
-    Command <|-- CopyCommand 
-    Command <|-- MoveStartCursorCommand 
-    Command <|-- MoveEndCursorCommand 
-    Command <|-- DeleteCommand
-    Command <|-- BackSpaceCommand
-    Command <|-- MoveCursorCommand
+    Command <|---- PasteCommand 
+    Command <|---- WriteCommand 
+    Command <|---- CopyCommand 
+    Command <|---- MoveStartCursorCommand 
+    Command <|---- MoveEndCursorCommand 
+    Command <|---- DeleteCommand
+    Command <|---- BackSpaceCommand
+    Command <|---- MoveCursorCommand
+
+    PasteCommand  <.. Application 
+    WriteCommand  <.. Application 
+    CopyCommand  <.. Application 
+    MoveStartCursorCommand  <.. Application 
+    MoveEndCursorCommand  <.. Application 
+    DeleteCommand <.. Application 
+    BackSpaceCommand <.. Application 
+    MoveCursorCommand <.. Application 
 
 
     Editor "1" <--* "1" Application
-    Command "0..*" <--* "1" Application
 
     PasteCommand "1" --> "1" Editor
     WriteCommand "1" --> "1"Editor
@@ -179,9 +205,10 @@ skinparam classAttributeIconSize 0
 Nous avons choisit comme principales classes de notre projet : **"Editor"**, **"Application"**, **"Command"** et **"Cursor"**. 
 
 - **"Application"** est la classe principale qui contient les différentes commandes et qui permet à l'utilisateur de les exécuter. C'est elle qui fait le lien avec l'interface utilisateur.
+  
+Dans ce la classe Application nous pouvons trouver l'attribut `listener` et les deux méthodes `render` et `addListener` qui sont utilisés pour mettre à jour l'interface utilisateur.
 
 - **"Editor"** est la classe qui contient le contenu du buffer, elle seule peut modifier le contenu du buffer.
-
 
 - **"Command"** est une classe abstraite qui permet de définir les différentes commandes qui utiliserons les fonctions de "Editor".
 
@@ -201,110 +228,29 @@ participant Cursor as cur
 participant Command as com
 
 group init (app constructor)
-    app -> cur: new Cursor()
+    app -> cur: Create instrance
     cur -> app: return instance
-    app -> edit: new Editor(cur)
+    app -> edit: Create instance
     edit -> app: return instance
 end
 
 group write
-    app -> com: new WriteCommand(app, "toto")
-    com -> app: return instance
-    app -> com: execute()
-    com -> edit: addStringBetween(text, cur.getStart(), cur.getEnd())
-    edit -> com: return void
-    com -> app: render()
-    app -> com: return void
-    com -> app: return void
 end
 group delete
-    app -> com: new DeleteCommand(app)
-    com -> app: return instance
-    app -> com: execute()
-    alt #Gold if cur.isSelection()
-        com -> edit: deleteBetween(cur.getStart(), cur.getEnd())
-        edit -> com: return void
-    else #LightBlue else
-        com -> edit: deletAfter(cur.getStart())
-        edit -> com: return void
-    end
-    com -> app: render()
-    app -> com: return void
-    com -> app: return void
 end
 group backSpace
-    app -> com: new BackSpaceCommand(app)
-    com -> app: return instance
-    app -> com: execute()
-    alt #Gold if cur.isSelection()
-        com -> edit: deleteBetween(cur.getStart(), cur.getEnd())
-        edit -> com: return void
-    else #LightBlue else
-        com -> edit: deletBefore(cur.getStart())
-        edit -> com: return void
-    end
-    com -> app: render()
-    app -> com: return void
-    com -> app: return void
 end
 group copy
-    app -> com: new CopyCommand(app)
-    com -> app: return instance
-    app -> com: execute()
-    com -> edit: getStringBetween(cur.getStart(), cur.getEnd())
-    edit -> com: return String
-    com -> app: setClipboard(String)
-    app -> com: return void
-    com -> app: return void
 end
-group paste
-    app -> com: new PasteCommand(app)
-    com -> app: return instance
-    app -> com: execute()
-    com -> app: getClipboard()
-    app -> com: return String
-    com -> edit: addStringBetween(clip, cur.getStart(), cur.getEnd())
-    edit -> com: return void
-    com -> app: render()
-    app -> com: return void
-    com -> app: return void
+group paste 
 end
-
-group cut
-    app -> app: onCopy()
-    app -> app: onDelete()
+group cut 
 end
-
 group move cursor
-    app -> com: new MoveCursorCommand(app)
-    com -> app: return instance
-    app -> com: execute()
-    com -> cur: setStart(Position)
-    cur -> com: return void
-    com -> cur: setEnd(Position)
-    cur -> com: return void
-    com -> app: return void
-    com -> app: return void
 end
-
 group move start cursor
-    app -> com: new MoveStartCursorCommand(app)
-    com -> app: return instance
-    app -> com: execute()
-    com -> cur: setStart(Position)
-    cur -> com: return void
-    com -> app: return void
-    com -> app: return void
 end
-
 group move end cursor
-    app -> com: new MoveEndCursorCommand(app)
-    com -> app: return instance
-    app -> com: execute()
-    com -> cur: setEnd(Position)
-    cur -> com: return void
-    com -> app: return void
-    com -> app: return void
 end
 
 
@@ -329,9 +275,9 @@ Nous avons défini 8 interactions principales entre les classes au sein de notre
 
 - **move cusror** : permet de déplacer les deux curseur (début et fin) à la même position.
 
-- **move start cursor** : permet de déplacer le curseur de début.
+- **move start cursor** : permet de déplacer le curseur de début. (utile pour les selections)
 
-- **move end cursor** : permet de déplacer le curseur de fin.
+- **move end cursor** : permet de déplacer le curseur de fin. (utile pour les selections)
 
 ## III.3 Diagramme d'état
 
@@ -351,7 +297,7 @@ Sachant désormais comment est contruit et fonctionne notre éditeur de texte, n
     isSelection --> Selection: [else]
 
 
-    NoSelection --> NoSelection : copy, delete, onwrite
+    NoSelection --> NoSelection : copy, delete, write
     
     Selection --> NoSelection : paste, delete, write
     Selection --> Selection : copy
@@ -377,6 +323,19 @@ Nous fabriquons ensuite l'interface graphique de notre éditeur de texte en util
 
 Vous retrouverez les instructions pour lancer le projet dans le fichier **README.md** du projet ou lancer la version en ligne [ici](https://editor.codyadm.com/).
 
+## III.5 Changements apportés
+
+Au fil de l' implémentation, nous avons ajoutée quelques fonctions utilitaires à nos classes dans le but de clarifier le code et de facilité le développement au long terme. 
+
+Voici la liste des changements apportés :
+
+- `editor.clampedPosition` : permet de retourner
+- `editor.getStartLinePos` : permet avec le numéro d'une ligne d'avoir la position de début de la ligne
+- `editor.getEndLinePos` : Hervé permet avec le numéro d'une ligne d'avoir la position de celle-ci
+- `position.isAfter` : permet la comparaison entre deux positions
+- `position.isBefore` : 
+- `position.isEqual` : 
+
 # IV. Réorganisation, et implémention de la v2.0
 
 Nous avons maintenant une version 1 du projet parfaitement opérationelle. Qui a une architecture oraganisée et modulaire, ainsi qu'une interface graphique permettant à l'utilisateur de se servir des différentes commandes.
@@ -398,7 +357,7 @@ skinparam classAttributeIconSize 0
         -editor: Editor
         -clipboard: String
         -cursor: Cursor
-        -listeners: List<()=>void>
+        -listeners: Array<()=>void>
         -history: UndoableCommand[]
         -historyIndex: number
         -macro: Command[]
@@ -430,7 +389,7 @@ skinparam classAttributeIconSize 0
     }
 
     class Editor {
-        -content: List<String>
+        -content: Array<String>
         +Editor(cur: Cursor)
         +deleteBetween(start: Position, end: Position): void
         +deleteBefore(pos: Position): void
@@ -440,7 +399,7 @@ skinparam classAttributeIconSize 0
         +getEndLine(pos: Position): Position
         +getStartLine(pos: Position): Position
         +getLineCount(): int
-        +getContent(): List<String>
+        +getContent(): Array<String>
         +clampedPosition(pos: Position): Position
     }
 
@@ -453,22 +412,21 @@ skinparam classAttributeIconSize 0
     }
 
     Abstract UndoableCommand{
-        ~deletedText: String
-        ~startPositon: Position
-        ~endPosition: Position
         +UndoableCommand(cur: Cursor, name: String)
-        +undo(): void
+        +undo(): void <<abstract>>
     }
     
     class Cursor{
         -start: Position
         -end: Position
-        +Cursor()
-        +isSelection()
-        +getStart()
-        +getEnd()
-        +setStart(pos: Position)
-        +setEnd(pos: Position)
+        +Cursor(start: Position, end: Position)
+        +isSelection(): boolean
+        +getStart(): Position
+        +getEnd(): Position
+        +setStart(pos: Position): void
+        +setEnd(pos: Position): void
+        +copy(other: Cursor): void
+        +from(other: Cursor): Cursor <<static>>
     }
     
     class Position{
@@ -477,27 +435,38 @@ skinparam classAttributeIconSize 0
         +Position(line: int, col: int)
         +getCol(): int
         +getLine(): int
+        +toString(): String
         +isAfter(other: Position): boolean
         +isBefore(other: Position): boolean
         +isEqual(other: Position): boolean
+        +from(other: Position): Position <<static>>
     }
 
     class WriteCommand {
         -text: String
         -cur: Cursor
         -edit : Editor
+        -deletedText: string | null
+        -beforeCur: Cursor | null
+        -afterPos: Position | null
         +Write(cur: Cursor, edit: Editor, text: String)
     }
 
     class DeleteCommand {
         -cur: Cursor
         -edit : Editor
+        -deletedText: string | null
+        -beforeCur: Cursor | null
+        -afterPos: Position | null
         +Delete(cur: Cursor, edit: Editor)
     }
 
     class BackSpaceCommand {
         -cur: Cursor
         -edit : Editor
+        -deletedText: string | null
+        -beforeCur: Cursor | null
+        -afterPos: Position | null
         +BackSpace(cur: Cursor, edit: Editor)
     }
 
@@ -506,13 +475,6 @@ skinparam classAttributeIconSize 0
         -edit : Editor
         -app: Application
         +Copy(cur: Cursor, edit: Editor, app: Application)
-    }
-
-    class PasteCommand {
-        -cur: Cursor
-        -edit : Editor
-        -app: Application
-        +Paste(cur: Cursor, edit: Editor, app: Application)
     }
 
     class MoveCursorCommand {
@@ -536,24 +498,27 @@ skinparam classAttributeIconSize 0
 
     Cursor "1" <--* "1" Application
     
-    UndoableCommand <|-- PasteCommand 
     UndoableCommand <|-- WriteCommand 
     UndoableCommand <|-- DeleteCommand
     UndoableCommand <|-- BackSpaceCommand
     UndoableCommand --|> Command
 
-    Command <|-- CopyCommand 
+    Command <|-- CopyCommand
     Command <|-- MoveStartCursorCommand 
     Command <|-- MoveEndCursorCommand 
     Command <|-- MoveCursorCommand
 
 
     Editor "1" <--* "1" Application
-    Command <-- Application 
-    UndoableCommand "0..*" <--* "1" Application 
-    
 
-    PasteCommand "1" --> "1" Editor
+    WriteCommand <.. Application
+    CopyCommand <.. Application
+    MoveStartCursorCommand <.. Application
+    MoveEndCursorCommand <.. Application
+    DeleteCommand <.. Application
+    BackSpaceCommand <.. Application
+    MoveCursorCommand <.. Application
+    
     WriteCommand "1" --> "1"Editor
     CopyCommand "1" --> "1" Editor
     MoveStartCursorCommand"1" --> "1" Cursor
@@ -593,8 +558,29 @@ Ayant ainsi la nouvelle structure et le fonctionnent final de notre éditeur, no
 @startuml
     state Selection
     state NoSelection
-    state IsRecording
-    state Replaying
+
+    state isSelection <<choice>>
+    state isEndingWithSelection <<choice>>
+
+    [*] -right-> NoSelection
+
+    isSelection ---> NoSelection: [distance start end cursor = 0]
+    Selection --> isSelection: move cursor
+    NoSelection --> isSelection: move cursor
+    isSelection --> Selection: [else]
+    
+    NoSelection <-- isEndingWithSelection: record macro
+    Selection <-- isEndingWithSelection: record macro
+    isEndingWithSelection --> NoSelection: [else]
+    isEndingWithSelection --> Selection: [end by selection]
+
+
+    NoSelection --> NoSelection : copy, delete, write, undo, redo
+    
+    Selection --> NoSelection : paste, delete, write, undo, redo
+    Selection --> Selection : copy
+    Selection --> [*] : exit
+    NoSelection --> [*] : exit
 @enduml
 ```
 Nous avons défini les mêmes états que pour la version 1 de notre éditeur de texte. Nous avons toutefois des changements d'états supplémentaire pour la version 2...
