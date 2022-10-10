@@ -398,11 +398,20 @@ skinparam classAttributeIconSize 0
         -editor: Editor
         -clipboard: String
         -cursor: Cursor
-        -listener: List<()=>void>
+        -listeners: List<()=>void>
+        -history: UndoableCommand[]
+        -historyIndex: number
+        -macro: Command[]
+        -isRecordingMacro: boolean
         +Application()
         +onCopy(): void
         +onPaste(): void
         +onCut(): void
+        +onUndo(): void
+        +onRedo(): void
+        +onStartRecordingMacro(): void
+        +onStopRecordingMacro(): void
+        +onPlayMacro(): void
         +onWrite(text: String): void
         +onBackSpace(): void
         +onDelete(): void
@@ -412,11 +421,15 @@ skinparam classAttributeIconSize 0
         +getCursor(): Cursor
         +getClipboard(): String
         +getEditor(): Editor
+        +getFormatedHistory(): Object[]
+        +setClipboard(clip: string): void
+        +getMacroInfo(): Object
+        +addRenderListener(listener: ()=>void): void
         -render(): void
+        -addToHistory(command: UndoableCommand): void
     }
 
     class Editor {
-        -cur: Cursor
         -content: List<String>
         +Editor(cur: Cursor)
         +deleteBetween(start: Position, end: Position): void
@@ -432,9 +445,11 @@ skinparam classAttributeIconSize 0
     }
 
     Abstract Command{
+        -name: String
         +Command(name: String)
         +execute(): void
         +getName(): String
+        +setName(name: String): void
     }
 
     Abstract UndoableCommand{
