@@ -63,6 +63,7 @@ export class WriteCommand extends UndoableCommand {
       this.deletedText = this.edit.getBetween(start, end);
       this.edit.deleteBetween(start, end);
       this.cur.setEnd(start);
+      this.cur.setStart(start);
     }
 
     // WHRITE
