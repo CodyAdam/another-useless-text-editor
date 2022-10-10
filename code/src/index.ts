@@ -15,10 +15,10 @@ import {
   DirectionalLight,
   MOUSE,
 } from "three";
-import { TextGeometry } from './TextGeometry';
+import { TextGeometry } from './utils/TextGeometry';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "stats.js";
-import { Font } from './FontLoader';
+import { Font } from './utils/FontLoader';
 import Application from "./v2";
 import { GUI } from 'dat.gui'
 import font from "./fonts/600.json"
@@ -38,53 +38,70 @@ type Char = {
 
 class Main {
   /** The scene */
-  public scene: Scene;
+  public scene: Scene = new Scene();
 
   /** The camera */
   public camera: PerspectiveCamera;
 
   /** The renderer */
-  public renderer: WebGLRenderer;
+  public renderer: WebGLRenderer = new WebGLRenderer({
+    powerPreference: "low-power",
+    antialias: true
+  });
 
   /** The orbit controls */
   public controls: OrbitControls;
 
   /** The stats */
-  public stats: Stats;
+  public stats: Stats = new Stats();
 
-  public text: Map<Position, Char>;
+  public text: Map<Position, Char> = new Map();
 
-  public cursorStart: Mesh;
-  public cursorEnd: Mesh;
+  public cursorStart: Mesh = this.createCursorMesh();
+  public cursorEnd: Mesh = this.createCursorMesh();
 
-  public font: Font;
+  public font: Font = new Font(font);
 
-  public app: Application;
+  public app: Application = new Application();
 
   public gui: GUI;
 
   public lastText: string;
 
-  public modifiers: { shift: boolean, ctrl: boolean };
-  public mouseButtons: { left: boolean, right: boolean, middle: boolean };
+  public modifiers = {
+    shift: false,
+    ctrl: false
+  };
+  public mouseButtons = {
+    left: false,
+    right: false,
+    middle: false
+  };
 
-  public animateCursor: Boolean;
-  public autoMove: Boolean;
-  public animateSelection: Boolean;
+  public animateCursor: Boolean = true;
+  public autoMove: Boolean = true;
+  public animateSelection: Boolean = true;
+  public animateWrite: Boolean = true;
+  public animateDelete: Boolean = true;
 
-  public pointLightEnd: PointLight;
-  public pointLightStart: PointLight;
+  public pointLightEnd: PointLight = new PointLight(0x03fc52, 5, 700);
+  public pointLightStart: PointLight = new PointLight(0xff0000, 5, 700);
 
-  public cache: Map<string, Mesh>
-  public clock: Clock;
+  public cache: Map<string, Mesh> = new Map();
+  public clock: Clock = new Clock(true);
 
   public historyDom: HTMLElement | null;
 
-  public macro: { info: HTMLElement | null, start: HTMLElement | null, end: HTMLElement | null, play: HTMLElement | null, list: HTMLElement | null }
+  public macro = {
+    info: document.getElementById("macro-info"),
+    start: document.getElementById("macro-start"),
+    end: document.getElementById("macro-end"),
+    play: document.getElementById("macro-play"),
+    list: document.getElementById("macro"),
+  }
 
   constructor() {
     // Init scene. 
-    this.scene = new Scene();
     this.scene.background = new Color("#191919");
 
 
@@ -92,23 +109,16 @@ class Main {
     const aspect = window.innerWidth / window.innerHeight;
     this.camera = new PerspectiveCamera(50, aspect, 1, 100000);
     this.camera.position.z = 1000;
-    this.autoMove = true;
 
     // Init renderer.
-    this.renderer = new WebGLRenderer({
-      powerPreference: "low-power",
-      antialias: true
-    });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.render(this.scene, this.camera);
-    // // uncomment if you want to use the animation loop
     this.renderer.setAnimationLoop(() => this.animate());
     document.body.appendChild(this.renderer.domElement);
     window.addEventListener("resize", () => this.onResize());
 
     // Init stats.
-    this.stats = new Stats();
     document.body.appendChild(this.stats.dom);
 
     // Init orbit controls.
@@ -116,25 +126,12 @@ class Main {
     this.controls.update();
     this.controls.addEventListener("change", () => this.render());
 
-
-    this.clock = new Clock();
-    this.clock.start();
-    this.font = new Font(font);
-
-    this.cursorStart = this.createCursorMesh();
-    this.cursorEnd = this.createCursorMesh();
     this.cursorStart.position.set(0, 30, 10);
     this.cursorEnd.position.set(0, 30, 10);
-    this.animateCursor = true;
-    this.animateSelection = true;
     this.scene.add(this.cursorStart);
     this.scene.add(this.cursorEnd)
     this.historyDom = document.getElementById("history");
 
-    this.modifiers = {
-      shift: false,
-      ctrl: false
-    }
     window.addEventListener('keydown', (e) => this.onKeyPress(e));
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Shift')
@@ -148,12 +145,6 @@ class Main {
       if (e.key === "Control" || e.key === "Command")
         this.modifiers.ctrl = false;
     })
-
-    this.mouseButtons = {
-      left: false,
-      right: false,
-      middle: false
-    }
     window.addEventListener('mousedown', (e) => {
       if (e.button === MOUSE.LEFT)
         this.mouseButtons.left = true;
@@ -162,7 +153,6 @@ class Main {
       if (e.button === MOUSE.MIDDLE)
         this.mouseButtons.middle = true;
     })
-
     window.addEventListener('mouseup', (e) => {
       if (e.button === MOUSE.LEFT)
         this.mouseButtons.left = false;
@@ -174,13 +164,9 @@ class Main {
 
     this.createGui();
 
-    this.text = new Map();
-    this.cache = new Map();
 
-    this.pointLightStart = new PointLight(0xff0000, 5, 700);
     this.pointLightStart.position.set(0, 0, 500);
     this.scene.add(this.pointLightStart);
-    this.pointLightEnd = new PointLight(0x03fc52, 5, 700);
     this.pointLightEnd.position.set(0, 0, 500);
     this.scene.add(this.pointLightEnd);
     const directionnal = new DirectionalLight(0xfcd703, .8);
@@ -189,28 +175,12 @@ class Main {
     const ambient = new AmbientLight(0xe39cff, 0.2);
     this.scene.add(ambient);
 
-    this.app = new Application();
     this.app.addRenderListener(() => this.render());
     this.app.onWrite("Another useless\ntext editor!");
     this.app.onMoveStartCursor(new Position(0, 15));
     this.app.onMoveEndCursor(new Position(0, 8));
 
     // MACROS
-    this.macro = {
-      info: null,
-      start: null,
-      end: null,
-      play: null,
-      list: null,
-    }
-
-    this.macro.info = document.getElementById("macro-info")
-    this.macro.start = document.getElementById("macro-start")
-    this.macro.end = document.getElementById("macro-end")
-    this.macro.play = document.getElementById("macro-play")
-    this.macro.list = document.getElementById("macro")
-
-
     this.macro.start?.addEventListener("click", () => {
       this.app.onStartRecordingMacro();
       this.updateMacroUI();
@@ -227,7 +197,6 @@ class Main {
     this.render();
     console.log(this);
   }
-
 
   private createGui() {
     this.gui = new GUI();
@@ -265,7 +234,6 @@ class Main {
     const selectionFold = this.gui.addFolder("Selection");
     selectionFold.add(this, "animateSelection").name('animate').onChange(() => this.render());
   }
-
 
   private onKeyPress(e: KeyboardEvent) {
     if (e.key === "Home") {
@@ -353,7 +321,6 @@ class Main {
     this.updateMacroUI();
   }
 
-  /** Renders the scene */
   private render() {
     //Update the text
 
@@ -446,10 +413,10 @@ class Main {
     this.stats.end();
   }
 
-  /** Animates the scene */
   private animate() {
     if (!this.autoMove && !this.animateCursor && !this.animateSelection)
       return;
+    const dt = this.clock.getDelta();
     this.stats.begin();
 
     if (this.autoMove && !this.mouseButtons.left && !this.mouseButtons.right && !this.mouseButtons.middle) {
@@ -512,7 +479,6 @@ class Main {
     this.stats.end();
   }
 
-  /** On resize event */
   private onResize() {
     if (this.camera instanceof PerspectiveCamera) {
       this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -586,7 +552,6 @@ class Main {
     })
     this.macro.list.innerHTML = text;
   }
-
 }
 
 new Main();
