@@ -398,6 +398,7 @@ skinparam classAttributeIconSize 0
         -editor: Editor
         -clipboard: String
         -cursor: Cursor
+        -listener: List<()=>void>
         +Application()
         +onCopy(): void
         +onPaste(): void
@@ -533,8 +534,7 @@ skinparam classAttributeIconSize 0
 
 
     Editor "1" <--* "1" Application
-    'Command "0..*" <--* "1" Application 
-    ' WHY?? plutôt
+    Command <-- Application 
     UndoableCommand "0..*" <--* "1" Application 
     
 

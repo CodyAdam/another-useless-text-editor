@@ -91,7 +91,7 @@ export class Application {
   addRenderListener(listener: () => void): void {
     this.listeners.push(listener);
   }
-  render(): void {
+  private render(): void {
     this.listeners.forEach(listener => listener());
   }
 
