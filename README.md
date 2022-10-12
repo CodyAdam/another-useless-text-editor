@@ -10,7 +10,7 @@
   - [III.3 Diagramme d'état](#iii3-diagramme-détat)
   - [III.4 Implémentation de l'éditeur](#iii4-implémentation-de-léditeur)
   - [III.5 Changements apportés](#iii5-changements-apportés)
-- [IV. Réorganisation, et implémention de la v2.0](#iv-réorganisation-et-implémention-de-la-v20)
+- [IV. Réorganisation, et implémentions de la v2.0](#iv-réorganisation-et-implémentions-de-la-v20)
   - [IV.1 Diagramme de classes](#iv1-diagramme-de-classes)
   - [IV.2 Diagramme de séquence](#iv2-diagramme-de-séquence)
   - [IV.3 Diagramme d'état](#iv3-diagramme-détat)
@@ -52,7 +52,9 @@ Avec notre cahier des charges nous définissons ensuite les différents graphiqu
 
 ## III.1 Diagramme de classe
 
-Ayant une idée générale des objectif du projet, nous pouvons réflechir à quelles classes remplissent aux mieux les fonctionnalités demandés et quelles sont leur interaction. Nous avons donc décidé de créer le diagramme de classe suivant :
+Ayant une idée générale des objectifs du projet, nous pouvons réfléchir à quelles classes remplissent aux mieux les fonctionnalités demandées et quelles sont leur interaction. Nous avons pris le soin de suivre au mieux les principes de conception vus en cours. Tel que les principes SOLID ainsi que le "command pattern" 
+
+Nous avons donc décidé de créer le diagramme de classe suivant :
 
 ```plantuml
 @startuml
@@ -202,7 +204,7 @@ skinparam classAttributeIconSize 0
 
 @enduml
 ``` 
-Nous avons choisit comme principales classes de notre projet : **"Editor"**, **"Application"**, **"Command"** et **"Cursor"**. 
+Nous avons choisi comme principales classes de notre projet : **"Editor"**, **"Application"**, **"Command"** et **"Cursor"**. 
 
 - **"Application"** est la classe principale qui contient les différentes commandes et qui permet à l'utilisateur de les exécuter. C'est elle qui fait le lien avec l'interface utilisateur.
   
@@ -210,13 +212,14 @@ Dans ce la classe Application nous pouvons trouver l'attribut `listener` et les 
 
 - **"Editor"** est la classe qui contient le contenu du buffer, elle seule peut modifier le contenu du buffer.
 
-- **"Command"** est une classe abstraite qui permet de définir les différentes commandes qui utiliserons les fonctions de "Editor".
+- **"Command"** est une classe abstraite qui permet de définir les différentes commandes qui utiliseront les fonctions de "Editor".
 
-- **"Cursor"** est la classe qui contient les **"Position"** s du curseur et qui permet de définir si il y a une sélection.
+- **"Cursor"** est la classe qui contient les **"Position"** s du curseur et qui permet de définir s'il y a une sélection.
+
 
 ## III.2 Diagramme séquence
 
-Disposant maintenant de notre diagramme de classes, ainsi que des principales classes, nous pouvons définir les interactions entre celles-ci. Nous avons donc décidé en reprenant nos quatres classes de créer le diagramme séquence suivant :
+Disposant maintenant de notre diagramme de classes, ainsi que des principales classes, nous pouvons définir les interactions entre celles-ci. Nous avons donc décidé en reprenant nos quatre classes de créer le diagramme séquence suivant :
 
 
 ```plantuml
@@ -228,36 +231,213 @@ participant Cursor as cur
 participant Command as com
 
 group init (app constructor)
-    app -> cur: Create instrance
+    app -> cur: Create Cursor instrance
     cur -> app: return instance
-    app -> edit: Create instance
+    app -> edit: Create Editor instance
     edit -> app: return instance
 end
 
 group write
+...
+    group command instance creation 
+    ...
+        app -> com: Create WriteCommand instance
+        com -> app: return instance
+        com -> cur: retrieve cursor
+        cur -> com: return cursor
+        com -> edit: retrieve editor
+        edit -> com: return editor
+    ...
+    end
+    group command execution
+    ...
+        app -> com: execute the command
+        com -> com: if end before start, swap
+        com -> cur: check if cursor is selection
+        cur -> com: return true or false
+        alt cursor is selection
+            com -> edit: delete between cursor start and end
+            com -> cur: set end cursor to start cursor
+        end
+        com -> edit: insert text at cursor start
+        com -> com: check if inserted text is multiline
+        alt text is multiline
+            com -> cur: set cursor start line to start line + number of lines in text
+            com -> cur: set cursor start column to length of last line in text
+        else text is not multiline
+            com -> cur: set cursor start column to start column + length of text
+        end
+    ...
+    end
 end
 group delete
+...
+    group commande instance creation
+    ...
+        app -> com: Create DeleteCommand instance
+        com -> app: return instance
+        com -> cur: retrieve cursor
+        cur -> com: return cursor
+        com -> edit: retrieve editor
+        edit -> com: return editor
+    ...
+    end
+    group command execution
+    ...
+        app -> com: execute the command
+        com -> com: if end before start, swap
+        com -> cur: check if cursor is selection
+        cur -> com: return true or false
+        alt cursor is selection
+            com -> edit: delete between cursor start and end
+        else
+            com -> edit: delete character after cursor start if possible
+        end
+    ...
+    end
 end
 group backSpace
+...
+    group commande instance creation
+    ...
+        app -> com: Create BackSpaceCommand instance
+        com -> app: return instance
+        com -> cur: retrieve cursor
+        cur -> com: return cursor
+        com -> edit: retrieve editor
+        edit -> com: return editor
+    ...
+    end
+    group command execution
+    ...
+        app -> com: execute the command
+        com -> com: if end before start, swap
+        com -> cur: check if cursor is selection
+        cur -> com: return true or false
+        alt cursor is selection
+            com -> edit: delete between cursor start and end
+            com -> cur: set end cursor to start cursor
+        else cursor is not selection
+            com -> edit: delete character before cursor start if possible
+            com -> cur: set start cursor before the deleted character position
+            com -> cur: set end cursor to start cursor
+        end
+    ...
+    end
 end
 group copy
+...
+    group commande instance creation
+    ...
+        app -> com: Create CopyCommand instance
+        com -> app: return instance
+        com -> cur: retrieve cursor
+        cur -> com: return cursor
+        com -> edit: retrieve editor
+        edit -> com: return editor
+    ...
+    end
+    group command execution
+    ...
+        app -> com: execute the command
+        com -> edit: get text between cursor start and end
+        com -> app: set clipboard to copied text
+    ...
+    end
 end
 group paste 
+...
+    group commande instance creation
+    ...
+        app -> com: Create WriteCommand instance
+        com -> app: return instance
+    ...
+    end
+    group command execution
+    ...
+    app -> com: execute the command
+    ...
+    note across: Same as write command but with clipboard text as input text
+    ...
+    end
 end
 group cut 
+...
+    group commande instance creation
+    ...
+        app -> com: Create CopyCommand instance
+        com -> app: return instance
+    ...
+    end
+    group command execution
+    ...
+    app -> com: execute the CopyCommand command
+    ...
+    app -> com: Create DeleteCommand instance
+    com -> app: return instance
+    ...
+    app -> com: execute the DeleteCommand command
+    ...
+    note across: Combination of copy and delete commands
+    ...
+    end
 end
 group move cursor
+...
+    group commande instance creation
+    ...
+        app -> com: Create MoveCursorCommand instance
+        com -> app: return instance
+        com -> cur: retrieve cursor
+        cur -> com: return cursor
+    ...
+    end
+    group command execution
+    ...
+        app -> com: execute the command
+        com -> cur: set start cursor to new position
+        com -> cur: set end cursor to new position
+    ...
+    end
 end
 group move start cursor
+...
+    group commande instance creation
+    ...
+        app -> com: Create MoveCursorCommand instance
+        com -> app: return instance
+        com -> cur: retrieve cursor
+        cur -> com: return cursor
+    ...
+    end
+    group command execution
+    ...
+        app -> com: execute the command
+        com -> cur: set start cursor to new position
+    ...
+    end
 end
 group move end cursor
+...
+    group commande instance creation
+    ...
+        app -> com: Create MoveCursorCommand instance
+        com -> app: return instance
+        com -> cur: retrieve cursor
+        cur -> com: return cursor
+    ...
+    end
+    group command execution
+    ...
+        app -> com: execute the command
+        com -> cur: set end cursor to new position
+    ...
+    end
 end
-
-
-
 @enduml
-``` 
-Nous avons défini 8 interactions principales entre les classes au sein de notre editeur de texte :
+```
+
+Nous avons défini 8 interactions principales entre les classes au sein de notre éditeur de texte :
 
 - **init** : permet d'initialiser l'application avec un éditeur et un curseur.
 
@@ -267,21 +447,23 @@ Nous avons défini 8 interactions principales entre les classes au sein de notre
 
 - **backSpace** : permet de supprimer du texte avant le curseur dans le buffer.
 
-- **copy** : permet de copier du texte en le stoquant dans le clipboard.
+- **copy** : permet de copier du texte en le stockant dans le clipboard.
    
-- **cut** : permet de copier du texte en le stoquant dans le clipboard et de supprimer la selection.
-
 - **paste** : permet de coller du texte du clipboard dans le buffer.
+  
+- **cut** : permet de copier du texte en le stockant dans le clipboard et de supprimer la sélection.
 
-- **move cusror** : permet de déplacer les deux curseur (début et fin) à la même position.
+- **move cusror** : permet de déplacer les deux curseurs (début et fin) à la même position.
 
-- **move start cursor** : permet de déplacer le curseur de début. (utile pour les selections)
+- **move start cursor** : permet de déplacer le curseur de début. (utile pour les sélections)
 
-- **move end cursor** : permet de déplacer le curseur de fin. (utile pour les selections)
+- **move end cursor** : permet de déplacer le curseur de fin. (utile pour les sélections)
 
 ## III.3 Diagramme d'état
 
-Sachant désormais comment est contruit et fonctionne notre éditeur de texte, nous pouvons essayer de trouver et définir les différents états de notre application. Nous avons donc fini par définir le diagramme d'état suivant : 
+Sachant désormais comment est construit et fonctionne notre éditeur de texte, nous pouvons essayer de trouver et définir les différents états de notre application. Nous avons donc fini par définir le diagramme d'état suivant : 
+
+
 
 ```plantuml
 @startuml
@@ -306,11 +488,13 @@ Sachant désormais comment est contruit et fonctionne notre éditeur de texte, n
 @enduml
 ``` 
 
-Nous avons défini deux états principaux : **"Selection"** et **"NoSelection"** pour notre Editeur. Notre application ne fait qu'alternée entre ces deux états selon les commandes efféctués. Pour cette alternance, nous avons également défini un état intermédiaire qui permet de définir si la commande **"move cursor"** va adoutir à un changement d'état ou non.
+Nous avons défini deux états principaux : **"Selection"** et **"NoSelection"** pour notre Éditeur. Notre application ne fait qu'alterner entre ces deux états selon les commandes effectués. Pour cette alternance, nous avons également défini un état intermédiaire qui permet de définir si la commande **"move cursor"** va aboutir à un changement d'état ou non.
+
+
 
 ## III.4 Implémentation de l'éditeur
 
-Nous avons décider d'implémenter notre éditeur de texte en languages Web soit en TypeScript. Nous avons ainsi programmé notre éditeur en utilisant l'architecture de notre diagramme de classes. Fabriquant ainsi les fichiers suivants :
+Nous avons décidé d'implémenter notre éditeur de texte en langages Web soit en TypeScript. Nous avons ainsi programmé notre éditeur en utilisant l'architecture de notre diagramme de classes. Fabriquant ainsi les fichiers suivants :
 
 - **app.ts** : la classe principale de notre application qui permet de gérer les commandes ainsi que les interactions avec l'utilisateur
 - **commands.ts** : implémentation de toutes les commandes
@@ -319,13 +503,15 @@ Nous avons décider d'implémenter notre éditeur de texte en languages Web soit
 - **position.ts** : implémentation de la classe position
 - **index.ts** : fichier annexe qui permet d'exporter la classe principale (n'est pas important pour la compréhension du projet)
   
-Nous fabriquons ensuite l'interface graphique de notre éditeur de texte en utilisant le framework graphique **"three.js"**. Celui-ci va nous permettre d'avoir d'avoir une interface constitué de modèles 3D, ce qui rend le projet ludique. Nous n'allons bien évidement pas réutiliser les fonctions de bases du navigateur web pour la selection, le copier/coller, etc.
+Nous fabriquons ensuite l'interface graphique de notre éditeur de texte en utilisant le framework graphique **"three.js"**. Celui-ci va nous permettre d'avoir d'avoir une interface constitué de modèles 3D, ce qui rend le projet ludique. Nous n'allons bien évidement pas réutiliser les fonctions de bases du navigateur web pour la sélection, le copier/coller, etc.
 
 Vous retrouverez les instructions pour lancer le projet dans le fichier **README.md** du projet ou lancer la version en ligne [ici](https://editor.codyadm.com/).
 
+
+
 ## III.5 Changements apportés
 
-Au fil de l' implémentation, nous avons ajoutée quelques fonctions utilitaires à nos classes dans le but de clarifier le code et de facilité le développement au long terme. 
+Au fil de l'implémentation, nous avons ajouté quelques fonctions utilitaires à nos classes dans le but de clarifier le code et de facilité le développement au long terme. 
 
 Voici la liste des changements apportés :
 
@@ -336,19 +522,25 @@ Voici la liste des changements apportés :
 - `position.isBefore` : 
 - `position.isEqual` : 
 
-# IV. Réorganisation, et implémention de la v2.0
 
-Nous avons maintenant une version 1 du projet parfaitement opérationelle. Qui a une architecture oraganisée et modulaire, ainsi qu'une interface graphique permettant à l'utilisateur de se servir des différentes commandes.
 
-Cependant, nous avons remarqué que notre éditeur de texte ne permet pas de faire les fonctionnalités avancés de notre cahier des charges. Nous passons ainsi à une version 2 de notre éditeur de texte, qui permettra à l'utilisateur:
+# IV. Réorganisation, et implémentions de la v2.0
 
-- D'enregistrer/rejouer les actions de l'utilisateur (e.g., script) 
+Nous avons maintenant une version 1 du projet parfaitement opérationnelle. Celui-ci a une architecture organisée et modulaire, ainsi qu'une interface graphique permettant à l'utilisateur de se servir des différentes commandes.
+
+Cependant, nous avons remarqué que notre éditeur de texte ne permet pas de faire les fonctionnalités avancées de notre cahier des charges. Nous passons ainsi à une version 2 de notre éditeur de texte, qui permettra à l'utilisateur :
+
+
+- D'enregistrer/rejouer les actions de l'utilisateur (e.g., macro) 
 - De réaliser le défaire/refaire, avec une capacité quelconque dans le défaire 
-(autrement dit on peut revenir au début)
+(autrement dit, on peut revenir au début)
+
+
 
 ## IV.1 Diagramme de classes
 
 Nous réalisons une extension de notre Diagramme de classes pour la version 2 de notre éditeur de texte qui reprend le diagramme de la version 1 comme structure initiale. Nous avons fini par définir le nouveau diagramme de classes suivant : 
+
 ```plantuml
 @startuml
 skinparam classAttributeIconSize 0
@@ -529,26 +721,171 @@ skinparam classAttributeIconSize 0
 
 @enduml
 ``` 
-Dans cette version 2, nous avons décidé de définir les nouvelles classes **"Script"** et **"History"**. La classe **"Script"** permet de stocker les commandes effectuées par l'utilisateur. La classe **"History"** permet de stocker les commandes effectuées par l'utilisateur et de les annuler/refaire.
+
+Dans cette version 2, nous avons décidé de définir la classe **"UndoableCommand"** qui défini la méthode abstraite `undo()`. Nous pourrons donc, via une liste de UndoableCommand, représenter notre "historique" de commande que nous pouvons annuler avec la méthode `undo()` ou refaire avec la méthode `execute()`. Cette liste permettra donc de pouvoir annuler et refaire autant de command que l'on souhaite à condition de ne pas saturer la mémoire.
+
+Nous disposons également de nouvelles méthodes liées aux enregistrements de macros ou bien scripts dans notre programme. Ceux-ci sont représentés par une liste de `Command` qui sont exécuté quand l'utilisateur lance le script.
 
 ## IV.2 Diagramme de séquence
 
-Nous réalisons ici aussi une extension de notre Diagramme de séquence pour la version 2, car les interactions initiales sont toujours possible pour l'utilisateur. Nous avons toutefois à définir en plus les interactions entre les classes **"Script"** et **"History"**. Nous avons fini par définir le nouveau diagramme de séquence suivant : 
+Nous réalisons ici aussi une extension de notre Diagramme de séquence pour la version 2, car les interactions initiales sont toujours possibles pour l'utilisateur. Nous avons toutefois ajouté différentes méthodes qui vont dont les interactions vont être décrite via le nouveau diagramme de séquence suivant. Pour différencier les interactions de la version 1 et de la version 2, nous avons décidé de mettre en évidence les interactions de la version 2 en les colorant en orange.
+
+
 ```plantuml
 @startuml
-class App
+participant Application as app
+participant Editor as edit
+participant Cursor as cur
+participant Command as com
+
+group write
+    ==command instance creation==
+    group commande execution
+    ...
+        app -> com: execute the command
+        group #gold new in v2
+            com -> com : store the current cursor
+        end
+        com -> com: if end before start, swap
+        com -> cur: check if cursor is selection
+        cur -> com: return true or false
+        alt cursor is selection
+            com -> edit: delete between cursor start and end
+            group #gold new in v2
+                com -> com : store the deleted text
+            end
+            com -> cur: set end cursor to start cursor
+        end
+        com -> edit: insert text at cursor start
+        com -> com: check if inserted text is multiline
+        alt text is multiline
+            com -> cur: set cursor start line to start line + number of lines in text
+            com -> cur: set cursor start column to length of last line in text
+        else text is not multiline
+            com -> cur: set cursor start column to start column + length of text
+        end
+        group #gold new in v2
+            com -> com : store the current start position
+        end
+    ...
+    end
+end
+group #gold undo write
+note across: undo can be called only if it was executed before
+    app -> com: call undo
+    com -> com: get the stored cursor from the \nexecution as tmpStart and tmpEnd
+    com -> com: if tmpEnd before tmpStart, swap
+    com -> edit: delete content between tmpStart and tmpEnd
+    com -> com: check if during execution \nof write a deletion was made
+    com -> edit: insert the stored deleted text at tmpStart
+    com -> cur: set start cursor to tmpStart
+    com -> cur: set end cursor to tmpEnd
+end
+group delete
+...
+    ==commande instance creation==
+    group command execution
+    ...
+        app -> com: execute the command
+        group #gold new in v2
+            com -> com : store the current cursor
+        end
+        com -> com: if end before start, swap
+        com -> cur: check if cursor is selection
+        cur -> com: return true or false
+        alt cursor is selection
+            com -> edit: delete between cursor start and end
+        else
+            com -> edit: delete character after cursor start if possible
+        end
+        group #gold new in v2
+            com -> com : store the deleted text
+            com -> com : store the start cursor position
+        end
+    ...
+    end
+end
+group #gold undo delete
+note across: undo can be called only if it was executed before
+    app -> com: call undo
+    com -> com: get the stored cursor from the\nexecution as beforeCur
+    com -> com: get the stored position at the end of\nthe execution as afterPos
+    com -> edit: write at the position afterPos the stored deleted text
+    com -> cur: set start cursor to beforeCur
+end
+group backSpace
+...
+    ==commande instance creation==
+    group command execution
+    ...
+        app -> com: execute the command
+        group #gold new in v2
+            com -> com : store the current cursor
+        end
+        com -> com: if end before start, swap
+        com -> cur: check if cursor is selection
+        cur -> com: return true or false
+        alt cursor is selection
+            com -> edit: delete between cursor start and end
+            com -> cur: set end cursor to start cursor
+        else cursor is not selection
+            com -> edit: delete character before cursor start if possible
+            com -> cur: set start cursor before the deleted character position
+            com -> cur: set end cursor to start cursor
+        end
+        group #gold new in v2
+            com -> com : store the deleted text
+            com -> com : store the start cursor position
+        end
+    ...
+    end
+end
+
+group #gold undo backSpace
+note across: undo can be called only if it was executed before
+    app -> com: call undo
+    com -> com: get the stored cursor from the\nexecution as beforeCur
+    com -> com: get the stored position at the end of\nthe execution as afterPos
+    com -> edit: write at the position afterPos the stored deleted text
+    com -> cur: set start cursor to beforeCur
+end
+
+group #gold record macro 
+...
+app -> app: call onStartRecordingMacro method
+app -> app: isRecordingMacro = true
+app -> app: clear the macro array
+...
+app -> app: call onStopRecordingMacro method
+app -> app: isRecordingMacro = false
+...
+alt isRecordingMacro
+note across: during a command triggered by the user
+    app -> app: add the command to the macro array
+end
+...
+end
+
+group #gold play macro
+...
+app -> app: call onPlayMacro method
+app -> com: call all the commands in the macro array
+...
+end
 @enduml
 ```
 
 Nous avons défini 4 interactions supplémentaires entre les classes au sein de notre editeur de texte :
 
-- **onRecord** : qui défini la procédure permettant d'enregistrer les commandes effectuées par l'utilisateur.
+- **undo write** :  permet de revenir en arrière sur une écriture
 
-- **onReplay** : qui défini la procédure permettant de rejouer les commandes enregistrées par l'utilisateur.
+- **undo delete** :  permet de revenir en arrière sur une suppression
 
-- **onUndo** : qui défini la procédure permettant d'annuler la dernière commande effectuée par l'utilisateur.
+- **undo backspace** :  permet de revenir en arrière sur une suppression avec la touche backspace
 
-- **onRedo** : qui défini la procédure permettant de refaire la dernière commande annulée par l'utilisateur.
+- **record macro** :  permet d'enregistrer une macro
+  
+- **play macro** :  permet de jouer une macro
 
 ## IV.3 Diagramme d'état
 
@@ -568,7 +905,7 @@ Ayant ainsi la nouvelle structure et le fonctionnent final de notre éditeur, no
     Selection --> isSelection: move cursor
     NoSelection --> isSelection: move cursor
     isSelection --> Selection: [else]
-    
+
     NoSelection <-- isEndingWithSelection: record macro
     Selection <-- isEndingWithSelection: record macro
     isEndingWithSelection --> NoSelection: [else]
@@ -587,14 +924,16 @@ Nous avons défini les mêmes états que pour la version 1 de notre éditeur de 
 
 ## IV.4 Implémentation de l'éditeur
 
-Nous avons fabriquer pour la version 2, les nouveaux fichiers suivant : **"script.ts"** et **"history.ts"**. Ces fichiers contiennent les classes **"Script"** et **"History"**. Nous avons également modifié les fichiers **"app.ts"** et **"editor.ts"** pour ajouter les nouvelles interactions entre les classes.
 
-Concernant l'interface graphique, nous avons ajouté un bouton **"Record"** qui permet d'enregistrer les commandes effectuées par l'utilisateur. Nous avons également ajouté un bouton **"Replay"** qui permet de rejouer les commandes enregistrées par l'utilisateur. Nous avons également ajouté un bouton **"Undo"** qui permet d'annuler la dernière commande effectuée par l'utilisateur. Nous avons également ajouté un bouton **"Redo"** qui permet de refaire la dernière commande annulée par l'utilisateur.
+Nous avons fabriqué pour la version 2, nous avons ajouté une interface pour visualiser l'historique de commande ainsi que l'état si la commande à été annulé ou non. Concernant l'interface graphique, nous avons ajouté un bouton **"Record"** qui permet d'enregistrer les commandes effectuées par l'utilisateur. Nous avons également ajouté un bouton **"Play"** qui permet de rejouer les commandes enregistrées par l'utilisateur.
+
+
 
 # V. Conclusion
 
-Dans ce TP, nous avons pu réaliser un éditeur de texte en 3D en utilisant le framework **"Three.js"** permettant à l'utilisateur de faire des actions de base telles que la selection, le copier/coller, etc. Mais aussi des actions avancées telles que l'enregistrement/rejouage des actions de l'utilisateur et le défaire/refaire à l'infini.
+Dans ce TP, nous avons pu réaliser un éditeur de texte en 3D en utilisant le framework **"Three.js"** permettant à l'utilisateur de faire des actions de base telles que la sélection, le copier/coller, etc. Mais aussi des actions avancées telles que l'enregistrement/rejouage des actions de l'utilisateur et le défaire/refaire à l'infini.
 
-Certe la conception du projet qui nous a permis de nous familiariser d'autant plus avec le langage **"TypeScript"** et le Framework **"Three.js"**, mais nous a surtout permis de mener à terme un projet bien organisé. En effet nous avons correctement dénini notre structure avec les diagrammes UML de sorte à ce qu'elle réponde parfaitement à nos attentes. Nous avons deplus grâce à la structure modulaire du projet pu ajouter de nouvelles fonctionnalités sans difficultés à notre application.
+Serte la conception du projet qui nous a permis de nous familiariser d'autant plus avec le langage **"TypeScript"** et le Framework **"Three.js"**, mais nous a surtout permis de mener à terme un projet bien organisé. En effet nous avons correctement défini notre structure avec les diagrammes UML de sorte qu'elle réponde parfaitement à nos attentes. De plus, grâce à la structure modulaire du projet, pu ajouter de nouvelles fonctionnalités sans difficultés à notre application.
 
-C'est en conclusion une démarche claire et utile que nous seront surement ammené à reconduire pour nos futurs projets.
+C'est en conclusion une démarche claire et utile que nous serons surement amenés à reconduire pour nos futurs projets.
+
