@@ -69,21 +69,21 @@ export class Application {
     this.render();
   }
   onMoveCursor(pos: Position): void {
-    const command = new MoveCursorCommand(this.cursor, this.editor.clampedPosition(pos))
+    const command = new MoveCursorCommand(this.cursor, pos,this.editor)
     if (this.isRecordingMacro)
       this.macro.push(command)
     command.execute();
     this.render();
   }
   onMoveStartCursor(pos: Position): void {
-    const command = new MoveStartCursorCommand(this.cursor, this.editor.clampedPosition(pos))
+    const command = new MoveStartCursorCommand(this.cursor, pos,this.editor)
     if (this.isRecordingMacro)
       this.macro.push(command)
     command.execute();
     this.render();
   }
   onMoveEndCursor(pos: Position): void {
-    const command = new MoveEndCursorCommand(this.cursor, this.editor.clampedPosition(pos))
+    const command = new MoveEndCursorCommand(this.cursor, pos,this.editor)
     if (this.isRecordingMacro)
       this.macro.push(command)
     command.execute();
