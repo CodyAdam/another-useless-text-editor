@@ -1,3 +1,9 @@
+- [Comment compiler le projet](#comment-compiler-le-projet)
+  - [1 - Aller à la racine du projet](#1---aller-à-la-racine-du-projet)
+  - [2 - Installer les dépendances](#2---installer-les-dépendances)
+  - [3 - Compiler le projet](#3---compiler-le-projet)
+  - [4 - Lancer le projet](#4---lancer-le-projet)
+  - [5 - Ouvrir la page web](#5---ouvrir-la-page-web)
 - [I. Introduction](#i-introduction)
 - [II. Cahier des charges](#ii-cahier-des-charges)
   - [Cahier des charges:](#cahier-des-charges)
@@ -16,6 +22,46 @@
   - [IV.3 Diagramme d'état](#iv3-diagramme-détat)
   - [IV.4 Implémentation de l'éditeur](#iv4-implémentation-de-léditeur)
 - [V. Conclusion](#v-conclusion)
+
+# Comment compiler le projet
+
+## 1 - Aller à la racine du projet
+
+```
+cd code
+```
+
+## 2 - Installer les dépendances
+
+
+
+```bash
+npm install # Avec npm (requiert nodejs ainsi que npm)
+# ou
+yarn # Avec yarn (requiert nodejs ainsi que yarn)
+```
+
+## 3 - Compiler le projet
+
+```bash
+npm run build # Avec npm
+# ou
+yarn build # Avec yarn
+```
+
+## 4 - Lancer le projet
+
+```bash
+npm run start # Avec npm
+# ou
+yarn start # Avec yarn
+```
+
+## 5 - Ouvrir la page web
+
+la page web est disponible à l'adresse [http://localhost:1234](http://localhost:1234)
+
+
 
 # I. Introduction
 
@@ -296,6 +342,16 @@ group delete
     ...
     end
 end
+@enduml
+```
+```plantuml
+@startuml
+
+participant Application as app
+participant Editor as edit
+participant Cursor as cur
+participant Command as com
+
 group backSpace
 ...
     group commande instance creation
@@ -325,6 +381,7 @@ group backSpace
     ...
     end
 end
+
 group copy
 ...
     group commande instance creation
@@ -382,6 +439,16 @@ group cut
     ...
     end
 end
+@enduml
+```
+```plantuml
+@startuml
+
+participant Application as app
+participant Editor as edit
+participant Cursor as cur
+participant Command as com
+
 group move cursor
 ...
     group commande instance creation
@@ -672,19 +739,22 @@ skinparam classAttributeIconSize 0
     class MoveCursorCommand {
         -cur: Cursor
         -pos: Position
-        +MoveCursor(cur: Cursor, pos: Position)
+        -edit: Editor
+        +MoveCursor(cur: Cursor, pos: Position, edit: Editor)
     }
 
     class MoveStartCursorCommand {
         -pos: Position
         -cur: Cursor
-        +MoveStartCursor(cur: Cursor, pos: Position)
+        -edit: Editor
+        +MoveStartCursor(cur: Cursor, pos: Position, edit: Editor)
     }
 
     class MoveEndCursorCommand {
         -pos: Position
         -cur: Cursor
-        +MoveEndCursor(cur: cursor, pos: Position)
+        -edit: Editor
+        +MoveEndCursor(cur: cursor, pos: Position, edit: Editor)
     }
 
 
@@ -781,6 +851,16 @@ note across: undo can be called only if it was executed before
     com -> cur: set start cursor to tmpStart
     com -> cur: set end cursor to tmpEnd
 end
+@enduml
+```
+```plantuml
+@startuml
+
+participant Application as app
+participant Editor as edit
+participant Cursor as cur
+participant Command as com
+
 group delete
 ...
     ==commande instance creation==
