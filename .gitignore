@@ -1,7 +1,7 @@
 **/.vscode
 
 **/tailwind.config.js
-
+plantuml-images/
 # Logs
 **/logs
 **/*.log
