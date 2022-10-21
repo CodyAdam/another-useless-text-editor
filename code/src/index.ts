@@ -236,6 +236,7 @@ class Main {
   }
 
   private onKeyPress(e: KeyboardEvent) {
+    e.preventDefault();
     if (e.key === "Home") {
       const current = this.app.getCursor().getEnd()
       if (this.modifiers.shift) {
