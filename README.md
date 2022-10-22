@@ -578,11 +578,11 @@ Vous retrouverez les instructions pour lancer le projet dans le fichier **README
 
 ## III.5 Changements apportés
 
-Au fil de l'implémentation, nous avons ajouté quelques fonctions utilitaires à nos classes dans le but de clarifier le code et de faciliter le développement au long terme. 
+Au fil de l'implémentation, nous avons ajouté quelques fonctions utilitaires à nos classes dans le but de clarifier le code et de faciliter le développement au long terme.
 
 Voici la liste des changements apportés :
 
-- `editor.clampedPosition` : permet de retourner / <!-- TODO -->
+- `editor.clampedPosition` : permet de retourner la position valide la plus proche de celle passée en paramètre
 - `editor.getStartLinePos` : permet avec le numéro d'une ligne d'avoir la position de début de la ligne
 - `editor.getEndLinePos` : Hervé permet avec le numéro d'une ligne d'avoir la position de celle-ci
 - `position.isAfter` : permet la comparaison entre deux positions
