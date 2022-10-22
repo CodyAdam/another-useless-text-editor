@@ -10,7 +10,7 @@
     - [V1](#v1)
     - [V2](#v2)
   - [Plan](#plan)
-- [III. Plannification et implémentation de la v1.0](#iii-plannification-et-implémentation-de-la-v10)
+- [III. Planification et implémentation de la v1.0](#iii-planification-et-implémentation-de-la-v10)
   - [III.1 Diagramme de classe](#iii1-diagramme-de-classe)
   - [III.2 Diagramme séquence](#iii2-diagramme-séquence)
   - [III.3 Diagramme d'état](#iii3-diagramme-détat)
@@ -65,18 +65,18 @@ la page web est disponible à l'adresse [http://localhost:1234](http://localhost
 
 # I. Introduction
 
-Dans ce TP, nous allons nous pencher sur la conception d'un editeur de texte. Avant de nous jeter dans la programmation, nous étudierons le fonctionnement d'un éditeur de texte. Nous verrons quelles sont ses fonctionnalités principales, leurs attributs et leur agencement en classe. Puis nous regarderons les différentes intéractions entre-elles et les différents états de l'éditeur. Pour nous permettre d'avoir enfin un code le plus compréhensible, organisé et modulaire possible.
+Dans ce TP, nous allons nous pencher sur la conception d'un éditeur de texte. Avant de nous jeter dans la programmation, nous étudierons le fonctionnement d'un éditeur de texte. Nous verrons quelles sont ses fonctionnalités principales, leurs attributs et leur agencement en classe. Puis, nous regarderons les différentes interactions entre-elles et les différents états de l'éditeur. Pour nous permettre d'avoir enfin un code le plus compréhensible, organisé et modulaire possible.
 
 # II. Cahier des charges
 
-Comme pour le TP1, nous cherchons à nous approprier le sujet en faisant un cahier des charges plus lisible et plus adapté à la situation que l'énnoncé.
+Comme pour le TP1, nous cherchons à nous approprier le sujet en faisant un cahier des charges plus lisible et plus adapté à la situation que l'énoncé.
 
 ## Cahier des charges: 
 
 ### V1
 
 - Le texte est contenu dans un buffer (zone de travail)
-- Il  existe  une  notion  de  sélection  de  texte,  avec  des  commandes  utilisateur  permettant  de déplacer le début et la fin de la sélection
+- Il existe une notion de sélection de texte, avec des commandes utilisateur permettant de déplacer le début et la fin de la sélection
 - Copie de la sélection dans le presse-papier
 - Copie de la sélection dans le presse-papier puis effacement de la sélection
 - Remplacement (« collage ») de la sélection par le contenu du presse-papier
@@ -86,15 +86,15 @@ Comme pour le TP1, nous cherchons à nous approprier le sujet en faisant un cahi
 
 - D'enregistrer/rejouer les actions de l'utilisateur (e.g., script)
 - De réaliser le défaire/refaire, avec une capacité quelconque dans le défaire 
-(autrement dit on peut revenir au début)
+(autrement dit, on peut revenir au début)
 
 ## Plan
-Avec notre cahier des charges nous définissons ensuite les différents graphiques UML qui nous seront nécessaires avant de commencer l'implémentation :
+Avec notre cahier des charges, nous définissons ensuite les différents graphiques UML qui nous seront nécessaires avant de commencer l'implémentation :
 - Diagramme de classe
 - Diagramme séquence
 - Diagramme d'état
 
-# III. Plannification et implémentation de la v1.0
+# III. Planification et implémentation de la v1.0
 
 ## III.1 Diagramme de classe
 
@@ -254,7 +254,7 @@ Nous avons choisi comme principales classes de notre projet : **"Editor"**, **"A
 
 - **"Application"** est la classe principale qui contient les différentes commandes et qui permet à l'utilisateur de les exécuter. C'est elle qui fait le lien avec l'interface utilisateur.
   
-Dans ce la classe Application nous pouvons trouver l'attribut `listener` et les deux méthodes `render` et `addListener` qui sont utilisés pour mettre à jour l'interface utilisateur.
+Dans la classe Application, nous pouvons trouver l'attribut `listener` et les deux méthodes `render` et `addListener` qui sont utilisés pour mettre à jour l'interface utilisateur.
 
 - **"Editor"** est la classe qui contient le contenu du buffer, elle seule peut modifier le contenu du buffer.
 
@@ -318,7 +318,7 @@ group write
 end
 group delete
 ...
-    group commande instance creation
+    group command instance creation
     ...
         app -> com: Create DeleteCommand instance
         com -> app: return instance
@@ -354,7 +354,7 @@ participant Command as com
 
 group backSpace
 ...
-    group commande instance creation
+    group command instance creation
     ...
         app -> com: Create BackSpaceCommand instance
         com -> app: return instance
@@ -384,7 +384,7 @@ end
 
 group copy
 ...
-    group commande instance creation
+    group command instance creation
     ...
         app -> com: Create CopyCommand instance
         com -> app: return instance
@@ -404,7 +404,7 @@ group copy
 end
 group paste 
 ...
-    group commande instance creation
+    group command instance creation
     ...
         app -> com: Create WriteCommand instance
         com -> app: return instance
@@ -420,7 +420,7 @@ group paste
 end
 group cut 
 ...
-    group commande instance creation
+    group command instance creation
     ...
         app -> com: Create CopyCommand instance
         com -> app: return instance
@@ -451,7 +451,7 @@ participant Command as com
 
 group move cursor
 ...
-    group commande instance creation
+    group command instance creation
     ...
         app -> com: Create MoveCursorCommand instance
         com -> app: return instance
@@ -469,7 +469,7 @@ group move cursor
 end
 group move start cursor
 ...
-    group commande instance creation
+    group command instance creation
     ...
         app -> com: Create MoveCursorCommand instance
         com -> app: return instance
@@ -486,7 +486,7 @@ group move start cursor
 end
 group move end cursor
 ...
-    group commande instance creation
+    group command instance creation
     ...
         app -> com: Create MoveCursorCommand instance
         com -> app: return instance
@@ -514,11 +514,11 @@ Nous avons défini 8 interactions principales entre les classes au sein de notre
 
 - **backSpace** : permet de supprimer du texte avant le curseur dans le buffer.
 
-- **copy** : permet de copier du texte en le stockant dans le clipboard.
+- **copy** : permet de copier du texte en le stockant dans le **clipboard**.
    
-- **paste** : permet de coller du texte du clipboard dans le buffer.
+- **paste** : permet de coller du texte du **clipboard** dans le buffer.
   
-- **cut** : permet de copier du texte en le stockant dans le clipboard et de supprimer la sélection.
+- **cut** : permet de copier du texte en le stockant dans le **clipboard** et de supprimer la sélection.
 
 - **move cusror** : permet de déplacer les deux curseurs (début et fin) à la même position.
 
@@ -528,7 +528,7 @@ Nous avons défini 8 interactions principales entre les classes au sein de notre
 
 ## III.3 Diagramme d'état
 
-Sachant désormais comment est construit et fonctionne notre éditeur de texte, nous pouvons essayer de trouver et définir les différents états de notre application. Nous avons donc fini par définir le diagramme d'état suivant : 
+Sachant désormais comment est construit et fonctionne notre éditeur de texte, nous pouvons essayer de trouver et de définir les différents états de notre application. Nous avons donc fini par définir le diagramme d'état suivant : 
 
 
 
@@ -565,12 +565,12 @@ Nous avons décidé d'implémenter notre éditeur de texte en langages Web soit 
 
 - **app.ts** : la classe principale de notre application qui permet de gérer les commandes ainsi que les interactions avec l'utilisateur
 - **commands.ts** : implémentation de toutes les commandes
-- **cursor.ts** : implémentation de la classe cursor
-- **editor.ts** : implémentation de la classe editor
-- **position.ts** : implémentation de la classe position
+- **cursor.ts** : implémentation de la classe **Cursor**
+- **editor.ts** : implémentation de la classe **Editor**
+- **position.ts** : implémentation de la classe **Position**
 - **index.ts** : fichier annexe qui permet d'exporter la classe principale (n'est pas important pour la compréhension du projet)
   
-Nous fabriquons ensuite l'interface graphique de notre éditeur de texte en utilisant le framework graphique **"three.js"**. Celui-ci va nous permettre d'avoir d'avoir une interface constitué de modèles 3D, ce qui rend le projet ludique. Nous n'allons bien évidement pas réutiliser les fonctions de bases du navigateur web pour la sélection, le copier/coller, etc.
+Nous fabriquons ensuite l'interface graphique de notre éditeur de texte en utilisant le framework graphique **"three.js"**. Celui-ci va nous permettre d'avoir d'avoir une interface constituée de modèles 3D, ce qui rend le projet ludique. Ce choix technique nous permet également de ne pas réutiliser les fonctions de base du navigateur web pour la sélection, le copier/coller, etc.
 
 Vous retrouverez les instructions pour lancer le projet dans le fichier **README.md** du projet ou lancer la version en ligne [ici](https://editor.codyadm.com/).
 
@@ -578,11 +578,11 @@ Vous retrouverez les instructions pour lancer le projet dans le fichier **README
 
 ## III.5 Changements apportés
 
-Au fil de l'implémentation, nous avons ajouté quelques fonctions utilitaires à nos classes dans le but de clarifier le code et de facilité le développement au long terme. 
+Au fil de l'implémentation, nous avons ajouté quelques fonctions utilitaires à nos classes dans le but de clarifier le code et de faciliter le développement au long terme. 
 
 Voici la liste des changements apportés :
 
-- `editor.clampedPosition` : permet de retourner
+- `editor.clampedPosition` : permet de retourner / <!-- TODO -->
 - `editor.getStartLinePos` : permet avec le numéro d'une ligne d'avoir la position de début de la ligne
 - `editor.getEndLinePos` : Hervé permet avec le numéro d'une ligne d'avoir la position de celle-ci
 - `position.isAfter` : permet la comparaison entre deux positions
@@ -792,9 +792,9 @@ skinparam classAttributeIconSize 0
 @enduml
 ``` 
 
-Dans cette version 2, nous avons décidé de définir la classe **"UndoableCommand"** qui défini la méthode abstraite `undo()`. Nous pourrons donc, via une liste de UndoableCommand, représenter notre "historique" de commande que nous pouvons annuler avec la méthode `undo()` ou refaire avec la méthode `execute()`. Cette liste permettra donc de pouvoir annuler et refaire autant de command que l'on souhaite à condition de ne pas saturer la mémoire.
+Dans cette version 2, nous avons décidé de définir la classe **"UndoableCommand"** qui défini la méthode abstraite `undo()`. Nous pourrons donc, via une liste de UndoableCommand, représenter notre "historique" de commande que nous pouvons annuler avec la méthode `undo()` ou refaire avec la méthode `execute()`. Cette liste permettra donc de pouvoir annuler et refaire autant de commandes que l'on souhaite à condition de ne pas saturer la mémoire.
 
-Nous disposons également de nouvelles méthodes liées aux enregistrements de macros ou bien scripts dans notre programme. Ceux-ci sont représentés par une liste de `Command` qui sont exécuté quand l'utilisateur lance le script.
+Nous disposons également de nouvelles méthodes liées aux enregistrements de macros ou bien scripts dans notre programme. Ceux-ci sont représentés par une liste de `Command`es qui sont exécutées quand l'utilisateur lance le script.
 
 ## IV.2 Diagramme de séquence
 
@@ -810,7 +810,7 @@ participant Command as com
 
 group write
     ==command instance creation==
-    group commande execution
+    group command execution
     ...
         app -> com: execute the command
         group #gold new in v2
@@ -863,7 +863,7 @@ participant Command as com
 
 group delete
 ...
-    ==commande instance creation==
+    ==command instance creation==
     group command execution
     ...
         app -> com: execute the command
@@ -895,7 +895,7 @@ note across: undo can be called only if it was executed before
 end
 group backSpace
 ...
-    ==commande instance creation==
+    ==command instance creation==
     group command execution
     ...
         app -> com: execute the command
@@ -955,7 +955,7 @@ end
 @enduml
 ```
 
-Nous avons défini 4 interactions supplémentaires entre les classes au sein de notre editeur de texte :
+Nous avons défini 4 interactions supplémentaires entre les classes au sein de notre éditeur de texte :
 
 - **undo write** :  permet de revenir en arrière sur une écriture
 
@@ -969,7 +969,7 @@ Nous avons défini 4 interactions supplémentaires entre les classes au sein de 
 
 ## IV.3 Diagramme d'état
 
-Ayant ainsi la nouvelle structure et le fonctionnent final de notre éditeur, nous pouvons définir quels sont les états définitif de notre application et quels actions engendrent des changements d'états. Nous avons donc fini par définir le diagramme d'état suivant :
+Ayant ainsi la nouvelle structure et le fonctionnent final de notre éditeur, nous pouvons définir quels sont les états définitifs de notre application et quelles actions engendrent des changements d'états. Nous avons donc fini par définir le diagramme d'état suivant :
 
 ```plantuml
 @startuml
@@ -1000,20 +1000,19 @@ Ayant ainsi la nouvelle structure et le fonctionnent final de notre éditeur, no
     NoSelection --> [*] : exit
 @enduml
 ```
-Nous avons défini les mêmes états que pour la version 1 de notre éditeur de texte. Nous avons toutefois des changements d'états supplémentaire pour la version 2...
+Nous avons défini les mêmes états que pour la version 1 de notre éditeur de texte. Nous avons toutefois des changements d'états supplémentaires pour la version 2...
 
 ## IV.4 Implémentation de l'éditeur
 
 
-Nous avons fabriqué pour la version 2, nous avons ajouté une interface pour visualiser l'historique de commande ainsi que l'état si la commande à été annulé ou non. Concernant l'interface graphique, nous avons ajouté un bouton **"Record"** qui permet d'enregistrer les commandes effectuées par l'utilisateur. Nous avons également ajouté un bouton **"Play"** qui permet de rejouer les commandes enregistrées par l'utilisateur.
+Nous avons fabriqué pour la version 2, nous avons ajouté une interface pour visualiser l'historique de commande ainsi que l'état si la commande a été annulé ou non. Concernant l'interface graphique, nous avons ajouté un bouton **"Record"** qui permet d'enregistrer les commandes effectuées par l'utilisateur. Nous avons également ajouté un bouton **"Play"** qui permet de rejouer les commandes enregistrées par l'utilisateur.
 
 
 
 # V. Conclusion
 
-Dans ce TP, nous avons pu réaliser un éditeur de texte en 3D en utilisant le framework **"Three.js"** permettant à l'utilisateur de faire des actions de base telles que la sélection, le copier/coller, etc. Mais aussi des actions avancées telles que l'enregistrement/rejouage des actions de l'utilisateur et le défaire/refaire à l'infini.
+Dans ce TP, nous avons pu réaliser un éditeur de texte en 3D en utilisant le framework **"Three.js"** permettant à l'utilisateur de faire des actions de base telles que la sélection, le copier/coller, etc. Mais aussi des actions avancées telles que l'enregistrement/le rejeu des actions de l'utilisateur et le défaire/refaire à l'infini.
 
-Serte la conception du projet qui nous a permis de nous familiariser d'autant plus avec le langage **"TypeScript"** et le Framework **"Three.js"**, mais nous a surtout permis de mener à terme un projet bien organisé. En effet nous avons correctement défini notre structure avec les diagrammes UML de sorte qu'elle réponde parfaitement à nos attentes. De plus, grâce à la structure modulaire du projet, pu ajouter de nouvelles fonctionnalités sans difficultés à notre application.
+Serte la conception du projet qui nous a permis de nous familiariser d'autant plus avec le langage **"TypeScript"** et le Framework **"Three.js"**, mais nous a surtout permis de mener à terme un projet bien organisé. En effet, nous avons correctement défini notre structure avec les diagrammes UML de sorte qu'elle réponde parfaitement à nos attentes. De plus, grâce à la structure modulaire du projet, pu ajouter de nouvelles fonctionnalités sans difficultés à notre application.
 
 C'est en conclusion une démarche claire et utile que nous serons surement amenés à reconduire pour nos futurs projets.
-
