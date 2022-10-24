@@ -1,3 +1,7 @@
+
+Par Cody ADAM
+et Thomas DELAPART
+
 - [Comment compiler le projet](#comment-compiler-le-projet)
   - [1 - Aller à la racine du projet](#1---aller-à-la-racine-du-projet)
   - [2 - Installer les dépendances](#2---installer-les-dépendances)
