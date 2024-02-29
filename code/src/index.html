@@ -21,7 +21,7 @@
     <!-- \n\n\nCommands :\n\n- Arrows: move the cursor\n- Shift + Arrows: select\n- Ctrl + X: cut selection\n- Ctrl + C: copy selection\n- Ctrl + V: paste\n- Ctrl + A: select all\n- Mouse: camera zoom/pan\n- Home/End/PgUp/PgDown: navigation -->
     <script type="module" src="index.ts"></script>
     <div
-      class="absolute bottom-7 left-5 flex flex-col gap-3 text-white [&>*]:select-none [&>p]:flex [&>p]:items-center [&>p]:gap-2"
+      class="absolute bottom-7 left-5 flex flex-col gap-3 text-white [&>*]:select-none [&>p]:flex [&>p]:items-center [&>p]:gap-2 gui"
     >
       <h1 class="text-xl font-semibold pb-2">Controls</h1>
       <!-- ←↑→↓ -->
@@ -44,7 +44,7 @@
       <p><span class="key">right click</span> Pan</p>
     </div>
     <div
-      class="absolute bottom-7 right-5 flex flex-col gap-3 text-white [&>*]:select-none [&>p]:flex [&>p]:items-center [&>p]:gap-2 items-end"
+      class="absolute bottom-7 right-5 flex flex-col gap-3 text-white [&>*]:select-none [&>p]:flex [&>p]:items-center [&>p]:gap-2 items-end gui"
     >
       <h1 class="text-xl font-semibold pb-2 pr-6">History</h1>
       <div class="flex max-h-72 overflow-y-auto items-end flex-col pr-6">
@@ -54,7 +54,7 @@
       </div>
     </div>
     <div
-      class="absolute bottom-7 right-72 flex flex-col gap-3 text-yellow-400 [&>*]:select-none [&>p]:flex [&>p]:items-center [&>p]:gap-2 items-end"
+      class="absolute bottom-7 right-72 flex flex-col gap-3 text-yellow-400 [&>*]:select-none [&>p]:flex [&>p]:items-center [&>p]:gap-2 items-end gui"
     >
       <h1 class="text-xl font-semibold pb-2 pr-6">Macro</h1>
       <div class="flex max-h-72 overflow-y-auto items-end flex-col pr-6">
@@ -64,7 +64,7 @@
       </div>
     </div>
     <div
-      class="absolute bottom-7 w-full flex flex-col gap-3 items-center justify-center text-white z-10 font-semibold select-none"
+      class="absolute bottom-7 w-full flex flex-col gap-3 items-center justify-center text-white z-10 font-semibold select-none gui"
     >
       <h1 class="opacity-50" id="macro-info">Current macro : None</h1>
       <div class="flex gap-4 text-white">

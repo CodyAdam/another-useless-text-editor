@@ -1,4 +1,3 @@
-
 import {
   Scene,
   Color,
@@ -15,26 +14,38 @@ import {
   DirectionalLight,
   MOUSE,
 } from "three";
-import { TextGeometry } from './utils/TextGeometry';
+import { TextGeometry } from "./utils/TextGeometry";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "stats.js";
-import { Font } from './utils/FontLoader';
+import { Font } from "./utils/FontLoader";
 import Application from "./v2";
-import { GUI } from 'dat.gui'
-import font from "./fonts/600.json"
-import { Position } from './v2/position';
-import { lerp } from 'three/src/math/MathUtils';
+import { GUI } from "dat.gui";
+import font from "./fonts/600.json";
+import { Position } from "./v2/position";
+import { lerp } from "three/src/math/MathUtils";
 
 const H = 152;
 const W = 72.25;
 const CUR_X_OFFSET = 0;
 const CUR_Y_OFFSET = 30;
 
-type Char = {
-  text: string,
-  mesh: Mesh,
-  seen: boolean
+// if url has ?hidegui=true, hide the gui
+const urlParams = new URLSearchParams(window.location.search);
+const hideGui = urlParams.get("hidegui") === "true";
+if (hideGui) {
+  // get element with class "gui"
+  const gui = document.getElementsByClassName("gui");
+  // hide all elements with class "gui"
+  for (let i = 0; i < gui.length; i++) {
+    (gui[i] as HTMLElement).style.display = "none";
+  }
 }
+
+type Char = {
+  text: string;
+  mesh: Mesh;
+  seen: boolean;
+};
 
 class Main {
   /** The scene */
@@ -46,7 +57,7 @@ class Main {
   /** The renderer */
   public renderer: WebGLRenderer = new WebGLRenderer({
     powerPreference: "low-power",
-    antialias: true
+    antialias: true,
   });
 
   /** The orbit controls */
@@ -70,12 +81,12 @@ class Main {
 
   public modifiers = {
     shift: false,
-    ctrl: false
+    ctrl: false,
   };
   public mouseButtons = {
     left: false,
     right: false,
-    middle: false
+    middle: false,
   };
 
   public animateCursor: Boolean = true;
@@ -98,12 +109,11 @@ class Main {
     end: document.getElementById("macro-end"),
     play: document.getElementById("macro-play"),
     list: document.getElementById("macro"),
-  }
+  };
 
   constructor() {
-    // Init scene. 
+    // Init scene.
     this.scene.background = new Color("#191919");
-
 
     // Init camera.
     const aspect = window.innerWidth / window.innerHeight;
@@ -119,7 +129,7 @@ class Main {
     window.addEventListener("resize", () => this.onResize());
 
     // Init stats.
-    document.body.appendChild(this.stats.dom);
+    if (!hideGui) document.body.appendChild(this.stats.dom);
 
     // Init orbit controls.
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -129,47 +139,38 @@ class Main {
     this.cursorStart.position.set(0, 30, 10);
     this.cursorEnd.position.set(0, 30, 10);
     this.scene.add(this.cursorStart);
-    this.scene.add(this.cursorEnd)
+    this.scene.add(this.cursorEnd);
     this.historyDom = document.getElementById("history");
 
-    window.addEventListener('keydown', (e) => this.onKeyPress(e));
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Shift')
-        this.modifiers.shift = true;
+    window.addEventListener("keydown", (e) => this.onKeyPress(e));
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Shift") this.modifiers.shift = true;
       if (e.key === "Control" || e.key === "Command")
         this.modifiers.ctrl = true;
-    })
-    window.addEventListener('keyup', (e) => {
-      if (e.key === 'Shift')
-        this.modifiers.shift = false;
+    });
+    window.addEventListener("keyup", (e) => {
+      if (e.key === "Shift") this.modifiers.shift = false;
       if (e.key === "Control" || e.key === "Command")
         this.modifiers.ctrl = false;
-    })
-    window.addEventListener('mousedown', (e) => {
-      if (e.button === MOUSE.LEFT)
-        this.mouseButtons.left = true;
-      if (e.button === MOUSE.RIGHT)
-        this.mouseButtons.right = true;
-      if (e.button === MOUSE.MIDDLE)
-        this.mouseButtons.middle = true;
-    })
-    window.addEventListener('mouseup', (e) => {
-      if (e.button === MOUSE.LEFT)
-        this.mouseButtons.left = false;
-      if (e.button === MOUSE.RIGHT)
-        this.mouseButtons.right = false;
-      if (e.button === MOUSE.MIDDLE)
-        this.mouseButtons.middle = false;
-    })
+    });
+    window.addEventListener("mousedown", (e) => {
+      if (e.button === MOUSE.LEFT) this.mouseButtons.left = true;
+      if (e.button === MOUSE.RIGHT) this.mouseButtons.right = true;
+      if (e.button === MOUSE.MIDDLE) this.mouseButtons.middle = true;
+    });
+    window.addEventListener("mouseup", (e) => {
+      if (e.button === MOUSE.LEFT) this.mouseButtons.left = false;
+      if (e.button === MOUSE.RIGHT) this.mouseButtons.right = false;
+      if (e.button === MOUSE.MIDDLE) this.mouseButtons.middle = false;
+    });
 
-    this.createGui();
-
+    if (!hideGui) this.createGui();
 
     this.pointLightStart.position.set(0, 0, 500);
     this.scene.add(this.pointLightStart);
     this.pointLightEnd.position.set(0, 0, 500);
     this.scene.add(this.pointLightEnd);
-    const directionnal = new DirectionalLight(0xfcd703, .8);
+    const directionnal = new DirectionalLight(0xfcd703, 0.8);
     directionnal.position.set(0, 1, 1);
     this.scene.add(directionnal);
     const ambient = new AmbientLight(0xe39cff, 0.2);
@@ -184,15 +185,15 @@ class Main {
     this.macro.start?.addEventListener("click", () => {
       this.app.onStartRecordingMacro();
       this.updateMacroUI();
-    })
+    });
     this.macro.end?.addEventListener("click", () => {
       this.app.onStopRecordingMacro();
       this.updateMacroUI();
-    })
+    });
     this.macro.play?.addEventListener("click", () => {
       this.app.onPlayMacro();
       this.updateMacroUI();
-    })
+    });
 
     this.render();
     console.log(this);
@@ -202,111 +203,178 @@ class Main {
     this.gui = new GUI();
 
     const perfFold = this.gui.addFolder("Performance");
-    perfFold.add({
-      low: () => {
-        this.animateCursor = false; this.autoMove = false; this.animateSelection = false;
-        this.text.forEach((char, pos) => {
-          char.mesh.position.setY(-pos.getLine() * H);
-          char.mesh.rotation.set(0, 0, 0);
-        });
-        this.render();
-      }
-    }, "low").name("Performance : Low")
-    perfFold.add({ low: () => { this.animateCursor = true; this.autoMove = true; this.animateSelection = true } }, "low").name("Performance : High")
+    perfFold
+      .add(
+        {
+          low: () => {
+            this.animateCursor = false;
+            this.autoMove = false;
+            this.animateSelection = false;
+            this.text.forEach((char, pos) => {
+              char.mesh.position.setY(-pos.getLine() * H);
+              char.mesh.rotation.set(0, 0, 0);
+            });
+            this.render();
+          },
+        },
+        "low"
+      )
+      .name("Performance : Low");
+    perfFold
+      .add(
+        {
+          low: () => {
+            this.animateCursor = true;
+            this.autoMove = true;
+            this.animateSelection = true;
+          },
+        },
+        "low"
+      )
+      .name("Performance : High");
 
     perfFold.open();
     const cursorFold = this.gui.addFolder("Cursor");
-    cursorFold.add(this.cursorStart.scale, 'x', 1, 100, .1).name('scale x').onChange(() => { this.cursorEnd.scale.x = this.cursorStart.scale.x; this.render() });
-    cursorFold.add(this.cursorStart.scale, 'y', .1, 5, .1).name('scale y').onChange(() => { this.cursorEnd.scale.y = this.cursorStart.scale.y; this.render() });
-    cursorFold.add(this.cursorStart.scale, 'z', 1, 5, .1).name('scale z').onChange(() => { this.cursorEnd.scale.z = this.cursorStart.scale.z; this.render() });
-    cursorFold.add(this, "animateCursor").name('animate').onChange(() => this.render());
-    const cameraFold = this.gui.addFolder("Camera");
-    cameraFold.add({
-      reset: () => {
-        this.camera.position.x = this.cursorEnd.position.x;
-        this.camera.position.y = this.cursorEnd.position.y;
-        this.camera.position.z = 1000;
-        this.camera.lookAt(this.cursorEnd.position);
+    cursorFold
+      .add(this.cursorStart.scale, "x", 1, 100, 0.1)
+      .name("scale x")
+      .onChange(() => {
+        this.cursorEnd.scale.x = this.cursorStart.scale.x;
         this.render();
-      }
-    }, "reset").name('reset position').onChange(() => this.render())
-    cameraFold.add(this, "autoMove").name('automatic').onChange(() => this.render());
+      });
+    cursorFold
+      .add(this.cursorStart.scale, "y", 0.1, 5, 0.1)
+      .name("scale y")
+      .onChange(() => {
+        this.cursorEnd.scale.y = this.cursorStart.scale.y;
+        this.render();
+      });
+    cursorFold
+      .add(this.cursorStart.scale, "z", 1, 5, 0.1)
+      .name("scale z")
+      .onChange(() => {
+        this.cursorEnd.scale.z = this.cursorStart.scale.z;
+        this.render();
+      });
+    cursorFold
+      .add(this, "animateCursor")
+      .name("animate")
+      .onChange(() => this.render());
+    const cameraFold = this.gui.addFolder("Camera");
+    cameraFold
+      .add(
+        {
+          reset: () => {
+            this.camera.position.x = this.cursorEnd.position.x;
+            this.camera.position.y = this.cursorEnd.position.y;
+            this.camera.position.z = 1000;
+            this.camera.lookAt(this.cursorEnd.position);
+            this.render();
+          },
+        },
+        "reset"
+      )
+      .name("reset position")
+      .onChange(() => this.render());
+    cameraFold
+      .add(this, "autoMove")
+      .name("automatic")
+      .onChange(() => this.render());
     const selectionFold = this.gui.addFolder("Selection");
-    selectionFold.add(this, "animateSelection").name('animate').onChange(() => this.render());
+    selectionFold
+      .add(this, "animateSelection")
+      .name("animate")
+      .onChange(() => this.render());
   }
 
   private onKeyPress(e: KeyboardEvent) {
     e.preventDefault();
     if (e.key === "Home") {
-      const current = this.app.getCursor().getEnd()
+      const current = this.app.getCursor().getEnd();
       if (this.modifiers.shift) {
-        this.app.onMoveEndCursor(this.app.getEditor().getStartLinePos(current.getLine()));
-      }
-      else this.app.onMoveCursor(this.app.getEditor().getStartLinePos(current.getLine()));
+        this.app.onMoveEndCursor(
+          this.app.getEditor().getStartLinePos(current.getLine())
+        );
+      } else
+        this.app.onMoveCursor(
+          this.app.getEditor().getStartLinePos(current.getLine())
+        );
     }
     if (e.key === "End") {
-      const current = this.app.getCursor().getEnd()
+      const current = this.app.getCursor().getEnd();
       if (this.modifiers.shift) {
-        this.app.onMoveEndCursor(this.app.getEditor().getEndLinePos(current.getLine()));
-      }
-      else this.app.onMoveCursor(this.app.getEditor().getEndLinePos(current.getLine()));
+        this.app.onMoveEndCursor(
+          this.app.getEditor().getEndLinePos(current.getLine())
+        );
+      } else
+        this.app.onMoveCursor(
+          this.app.getEditor().getEndLinePos(current.getLine())
+        );
     }
     if (e.key === "PageUp") {
-      const current = this.app.getCursor().getEnd()
+      const current = this.app.getCursor().getEnd();
       if (this.modifiers.shift)
         this.app.onMoveEndCursor(new Position(0, current.getCol()));
       else this.app.onMoveCursor(new Position(0, current.getCol()));
     }
     if (e.key === "PageDown") {
-      const current = this.app.getCursor().getEnd()
+      const current = this.app.getCursor().getEnd();
       const endIndex = this.app.getEditor().getLineCount() - 1;
-      if (this.modifiers.shift) this.app.onMoveEndCursor(new Position(endIndex, current.getCol()));
+      if (this.modifiers.shift)
+        this.app.onMoveEndCursor(new Position(endIndex, current.getCol()));
       else this.app.onMoveCursor(new Position(endIndex, current.getCol()));
     }
-    if (e.key === 'Backspace') {
+    if (e.key === "Backspace") {
       this.app.onBackspace();
     } else if (e.key === "Delete") {
       this.app.onDelete();
-    }
-    else if (e.key === "ArrowLeft") {
-      const current = this.app.getCursor().getEnd()
+    } else if (e.key === "ArrowLeft") {
+      const current = this.app.getCursor().getEnd();
       if (this.modifiers.shift) {
-        this.app.onMoveEndCursor(new Position(current.getLine(), current.getCol() - 1))
-      }
-      else this.app.onMoveCursor(new Position(current.getLine(), current.getCol() - 1));
-    }
-    else if (e.key === "ArrowRight") {
-      const current = this.app.getCursor().getEnd()
+        this.app.onMoveEndCursor(
+          new Position(current.getLine(), current.getCol() - 1)
+        );
+      } else
+        this.app.onMoveCursor(
+          new Position(current.getLine(), current.getCol() - 1)
+        );
+    } else if (e.key === "ArrowRight") {
+      const current = this.app.getCursor().getEnd();
       if (this.modifiers.shift) {
-        this.app.onMoveEndCursor(new Position(current.getLine(), current.getCol() + 1))
-      }
-      else this.app.onMoveCursor(new Position(current.getLine(), current.getCol() + 1));
-    }
-    else if (e.key === "ArrowUp") {
-      const current = this.app.getCursor().getEnd()
+        this.app.onMoveEndCursor(
+          new Position(current.getLine(), current.getCol() + 1)
+        );
+      } else
+        this.app.onMoveCursor(
+          new Position(current.getLine(), current.getCol() + 1)
+        );
+    } else if (e.key === "ArrowUp") {
+      const current = this.app.getCursor().getEnd();
       if (this.modifiers.shift) {
-        this.app.onMoveEndCursor(new Position(current.getLine() - 1, current.getCol()))
-      }
-      else this.app.onMoveCursor(new Position(current.getLine() - 1, current.getCol()));
-    }
-    else if (e.key === "ArrowDown") {
-      const current = this.app.getCursor().getEnd()
+        this.app.onMoveEndCursor(
+          new Position(current.getLine() - 1, current.getCol())
+        );
+      } else
+        this.app.onMoveCursor(
+          new Position(current.getLine() - 1, current.getCol())
+        );
+    } else if (e.key === "ArrowDown") {
+      const current = this.app.getCursor().getEnd();
       if (this.modifiers.shift) {
-        this.app.onMoveEndCursor(new Position(current.getLine() + 1, current.getCol()))
-      }
-      else this.app.onMoveCursor(new Position(current.getLine() + 1, current.getCol()));
-    }
-    else if (e.key === "Enter") {
+        this.app.onMoveEndCursor(
+          new Position(current.getLine() + 1, current.getCol())
+        );
+      } else
+        this.app.onMoveCursor(
+          new Position(current.getLine() + 1, current.getCol())
+        );
+    } else if (e.key === "Enter") {
       this.app.onWrite("\n");
-    }
-    else if (e.key.length === 1) {
+    } else if (e.key.length === 1) {
       if (this.modifiers.ctrl) {
-        if (e.key === "c")
-          this.app.onCopy();
-        else if (e.key === "v")
-          this.app.onPaste();
-        else if (e.key === "x")
-          this.app.onCut();
+        if (e.key === "c") this.app.onCopy();
+        else if (e.key === "v") this.app.onPaste();
+        else if (e.key === "x") this.app.onCut();
         else if (e.key === "a") {
           this.app.onMoveStartCursor(new Position(0, 0));
           this.app.onMoveEndCursor(new Position(99999, 99999));
@@ -315,9 +383,7 @@ class Main {
         } else if (e.key === "y") {
           this.app.onRedo();
         }
-      }
-      else
-        this.app.onWrite(e.key);
+      } else this.app.onWrite(e.key);
     }
     this.updateMacroUI();
   }
@@ -326,13 +392,13 @@ class Main {
     //Update the text
 
     const content = this.app.getEditor().getContent();
-    if (this.lastText !== content.join('\n')) {
-      this.lastText = content.join('\n');
+    if (this.lastText !== content.join("\n")) {
+      this.lastText = content.join("\n");
       this.text.forEach((char, pos) => {
         char.seen = false;
       });
       content.forEach((line, y) => {
-        line.split('').forEach((char, x) => {
+        line.split("").forEach((char, x) => {
           const pos = new Position(y, x);
           const charObj = this.text.get(pos);
           if (charObj) {
@@ -342,8 +408,7 @@ class Main {
               this.text.set(pos, { text: char, mesh: newCharObj, seen: true });
             }
             charObj.seen = true;
-          }
-          else {
+          } else {
             const charObj = this.getCharMesh(char).clone();
             charObj.position.setX(x * W);
             charObj.position.setY(-y * H);
@@ -359,7 +424,6 @@ class Main {
           this.text.delete(pos);
         }
       });
-
     }
 
     //Update the cursor
@@ -371,24 +435,28 @@ class Main {
       this.cursorEnd.position.setX(endCur.getCol() * W + CUR_X_OFFSET);
       this.cursorEnd.position.setY(-endCur.getLine() * H + CUR_Y_OFFSET);
       // update light position on cursor
-      this.pointLightEnd.position.setX(this.cursorEnd.position.x)
-      this.pointLightEnd.position.setY(this.cursorEnd.position.y)
-      this.pointLightStart.position.setX(this.cursorStart.position.x)
-      this.pointLightStart.position.setY(this.cursorStart.position.y)
+      this.pointLightEnd.position.setX(this.cursorEnd.position.x);
+      this.pointLightEnd.position.setY(this.cursorEnd.position.y);
+      this.pointLightStart.position.setX(this.cursorStart.position.x);
+      this.pointLightStart.position.setY(this.cursorStart.position.y);
     }
-
 
     if (!this.animateSelection) {
       this.text.forEach((char, pos) => {
         if (this.isSelected(pos)) {
-          const posOffset = + 10 * Math.sin(char.mesh.position.x / 100 + char.mesh.position.y / 100);
+          const posOffset =
+            +10 *
+            Math.sin(char.mesh.position.x / 100 + char.mesh.position.y / 100);
           char.mesh.position.setY(-pos.getLine() * H + posOffset);
           const rotationOffset = 0.1 * Math.sin(char.mesh.position.x / 100);
-          char.mesh.rotation.set(rotationOffset, rotationOffset, rotationOffset);
+          char.mesh.rotation.set(
+            rotationOffset,
+            rotationOffset,
+            rotationOffset
+          );
           const material = new MeshPhongMaterial();
           char.mesh.material = material;
-        }
-        else {
+        } else {
           char.mesh.position.setY(-pos.getLine() * H);
           char.mesh.rotation.set(0, 0, 0);
           char.mesh.material = new MeshNormalMaterial();
@@ -402,10 +470,16 @@ class Main {
       let text = "";
       history.forEach((command, index) => {
         if (command.done)
-          text += command.name.substring(0, 30) + (command.name.length > 29 ? "..." : "") + "<br/>";
+          text +=
+            command.name.substring(0, 30) +
+            (command.name.length > 29 ? "..." : "") +
+            "<br/>";
         else
-          text += `<span class=\"text-gray-500\">${command.name.substring(0, 30) + (command.name.length > 29 ? "..." : "")}</span><br/>`
-      })
+          text += `<span class=\"text-gray-500\">${
+            command.name.substring(0, 30) +
+            (command.name.length > 29 ? "..." : "")
+          }</span><br/>`;
+      });
       this.historyDom.innerHTML = text;
     }
 
@@ -415,14 +489,22 @@ class Main {
   }
 
   private animate() {
-    if (!this.autoMove && !this.animateCursor && !this.animateSelection)
-      return;
+    if (!this.autoMove && !this.animateCursor && !this.animateSelection) return;
     const dt = this.clock.getDelta();
     this.stats.begin();
 
-    if (this.autoMove && !this.mouseButtons.left && !this.mouseButtons.right && !this.mouseButtons.middle) {
-      this.camera.position.setX(lerp(this.camera.position.x, this.cursorEnd.position.x, 0.01))
-      this.camera.position.setY(lerp(this.camera.position.y, this.cursorEnd.position.y, 0.01))
+    if (
+      this.autoMove &&
+      !this.mouseButtons.left &&
+      !this.mouseButtons.right &&
+      !this.mouseButtons.middle
+    ) {
+      this.camera.position.setX(
+        lerp(this.camera.position.x, this.cursorEnd.position.x, 0.01)
+      );
+      this.camera.position.setY(
+        lerp(this.camera.position.y, this.cursorEnd.position.y, 0.01)
+      );
       this.controls.update();
 
       let max = new Vector3();
@@ -442,33 +524,74 @@ class Main {
     if (this.animateCursor) {
       const startCur = this.app.getCursor().getStart();
       const endCur = this.app.getCursor().getEnd();
-      this.cursorStart.position.setX(lerp(this.cursorStart.position.x, startCur.getCol() * W + CUR_X_OFFSET, 0.2))
-      this.cursorStart.position.setY(lerp(this.cursorStart.position.y, -startCur.getLine() * H + CUR_Y_OFFSET, 0.2))
-      this.cursorEnd.position.setX(lerp(this.cursorEnd.position.x, endCur.getCol() * W + CUR_X_OFFSET, 0.2))
-      this.cursorEnd.position.setY(lerp(this.cursorEnd.position.y, -endCur.getLine() * H + CUR_Y_OFFSET, 0.2))
+      this.cursorStart.position.setX(
+        lerp(
+          this.cursorStart.position.x,
+          startCur.getCol() * W + CUR_X_OFFSET,
+          0.2
+        )
+      );
+      this.cursorStart.position.setY(
+        lerp(
+          this.cursorStart.position.y,
+          -startCur.getLine() * H + CUR_Y_OFFSET,
+          0.2
+        )
+      );
+      this.cursorEnd.position.setX(
+        lerp(this.cursorEnd.position.x, endCur.getCol() * W + CUR_X_OFFSET, 0.2)
+      );
+      this.cursorEnd.position.setY(
+        lerp(
+          this.cursorEnd.position.y,
+          -endCur.getLine() * H + CUR_Y_OFFSET,
+          0.2
+        )
+      );
       // update light position on cursor
-      this.pointLightEnd.position.setX(this.cursorEnd.position.x)
-      this.pointLightEnd.position.setY(this.cursorEnd.position.y)
-      this.pointLightStart.position.setX(this.cursorStart.position.x)
-      this.pointLightStart.position.setY(this.cursorStart.position.y)
+      this.pointLightEnd.position.setX(this.cursorEnd.position.x);
+      this.pointLightEnd.position.setY(this.cursorEnd.position.y);
+      this.pointLightStart.position.setX(this.cursorStart.position.x);
+      this.pointLightStart.position.setY(this.cursorStart.position.y);
 
-      this.pointLightEnd.intensity = this.pointLightStart.position.distanceTo(this.pointLightEnd.position) / 1000;
-      this.pointLightStart.intensity = this.pointLightStart.position.distanceTo(this.pointLightEnd.position) / 1000;
-      this.pointLightEnd.distance = this.pointLightStart.position.distanceTo(this.pointLightEnd.position);
-      this.pointLightStart.distance = this.pointLightStart.position.distanceTo(this.pointLightEnd.position);
+      this.pointLightEnd.intensity =
+        this.pointLightStart.position.distanceTo(this.pointLightEnd.position) /
+        1000;
+      this.pointLightStart.intensity =
+        this.pointLightStart.position.distanceTo(this.pointLightEnd.position) /
+        1000;
+      this.pointLightEnd.distance = this.pointLightStart.position.distanceTo(
+        this.pointLightEnd.position
+      );
+      this.pointLightStart.distance = this.pointLightStart.position.distanceTo(
+        this.pointLightEnd.position
+      );
     }
 
     if (this.animateSelection) {
       this.text.forEach((char, pos) => {
         if (this.isSelected(pos)) {
-          const posOffset = + 10 * Math.sin(char.mesh.position.x / 100 + char.mesh.position.y / 100 + 4 * this.clock.getElapsedTime());
+          const posOffset =
+            +10 *
+            Math.sin(
+              char.mesh.position.x / 100 +
+                char.mesh.position.y / 100 +
+                4 * this.clock.getElapsedTime()
+            );
           char.mesh.position.setY(-pos.getLine() * H + posOffset);
-          const rotationOffset = 0.1 * Math.sin(char.mesh.position.x / 100 + 5 * this.clock.getElapsedTime());
-          char.mesh.rotation.set(rotationOffset, rotationOffset, rotationOffset);
+          const rotationOffset =
+            0.1 *
+            Math.sin(
+              char.mesh.position.x / 100 + 5 * this.clock.getElapsedTime()
+            );
+          char.mesh.rotation.set(
+            rotationOffset,
+            rotationOffset,
+            rotationOffset
+          );
           const material = new MeshPhongMaterial();
           char.mesh.material = material;
-        }
-        else {
+        } else {
           char.mesh.position.setY(-pos.getLine() * H);
           char.mesh.rotation.set(0, 0, 0);
           char.mesh.material = new MeshNormalMaterial();
@@ -522,16 +645,26 @@ class Main {
   private isSelected(pos: Position): boolean {
     let start = this.app.getCursor().getStart();
     let end = this.app.getCursor().getEnd();
-    if (start.getLine() > end.getLine() || (start.getLine() === end.getLine() && start.getCol() > end.getCol())) {
+    if (
+      start.getLine() > end.getLine() ||
+      (start.getLine() === end.getLine() && start.getCol() > end.getCol())
+    ) {
       const tmp = start;
       start = end;
       end = tmp;
     }
-    return (pos.isAfter(start) || pos.isEqual(start)) && (pos.isBefore(end));
+    return (pos.isAfter(start) || pos.isEqual(start)) && pos.isBefore(end);
   }
 
   private updateMacroUI() {
-    if (!this.macro || !this.macro.list || !this.macro.info || !this.macro.start || !this.macro.end) return;
+    if (
+      !this.macro ||
+      !this.macro.list ||
+      !this.macro.info ||
+      !this.macro.start ||
+      !this.macro.end
+    )
+      return;
     const { isRecording, length, list } = this.app.getMacroInfo();
     if (!isRecording) {
       if (length == 0) {
@@ -549,8 +682,8 @@ class Main {
     let text = "";
     list.reverse();
     list.forEach((name, index) => {
-      text += `${name.substring(0, 30) + (name.length > 29 ? "..." : "")}<br/>`
-    })
+      text += `${name.substring(0, 30) + (name.length > 29 ? "..." : "")}<br/>`;
+    });
     this.macro.list.innerHTML = text;
   }
 }
