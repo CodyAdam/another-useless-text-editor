@@ -5,7 +5,7 @@
     "dev": "parcel src/index.html --open",
     "start": "parcel src/index.html --open",
     "build": "parcel build src/index.html",
-    "tailwindcss" : "tailwindcss -i src/style.css -o src/styleCompiled.css --watch"
+    "css" : "tailwindcss -i src/style/style.css -o src/style/styleCompiled.css --watch"
   },
   "dependencies": {
     "dat.gui": "^0.7.9",

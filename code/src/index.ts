@@ -32,12 +32,12 @@ const CUR_Y_OFFSET = 30;
 // if url has ?hidegui=true, hide the gui
 const urlParams = new URLSearchParams(window.location.search);
 const hideGui = urlParams.get("hidegui") === "true";
-if (hideGui) {
-  // get element with class "gui"
-  const gui = document.getElementsByClassName("gui");
-  // hide all elements with class "gui"
+if (!hideGui) {
+  // get element with class "hidegui"
+  const gui = document.getElementsByClassName("hidegui");
+  // overide the visibility of the element
   for (let i = 0; i < gui.length; i++) {
-    (gui[i] as HTMLElement).style.display = "none";
+    (gui[i] as HTMLElement).style.visibility = "visible";
   }
 }
 
